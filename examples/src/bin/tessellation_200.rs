@@ -272,12 +272,14 @@ fn main() {
 
     loop {
 
-
         if let Some(event) = manager.get_event(){
 
             println!("{:?}", event);
 
         }
+
+
+
         previous_frame_end.cleanup_finished();
         if recreate_swapchain {
             let dimensions = if let Some(dimensions) = window.get_inner_size() {
