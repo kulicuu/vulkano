@@ -83,10 +83,10 @@ void main(void)
     // but gl_out is handily provided.
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 
-    gl_TessLevelInner[0] = 10; // many triangles are generated in the center
+    gl_TessLevelInner[0] = 50; // many triangles are generated in the center
     gl_TessLevelOuter[0] = 1;  // no triangles are generated for this edge
-    gl_TessLevelOuter[1] = 10; // many triangles are generated for this edge
-    gl_TessLevelOuter[2] = 10; // many triangles are generated for this edge
+    gl_TessLevelOuter[1] = 40; // many triangles are generated for this edge
+    gl_TessLevelOuter[2] = 30; // many triangles are generated for this edge
     // gl_TessLevelInner[1] = only used when tes uses layout(quads)
     // gl_TessLevelOuter[3] = only used when tes uses layout(quads)
 }"
@@ -215,9 +215,9 @@ fn main() {
         vulkano::impl_vertex!(Vertex, position);
 
         CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), [
-            Vertex { position: [-0.5,  -0.25] },
+            Vertex { position: [-0.9,  -0.95] },
             Vertex { position: [ 0.0,   0.5] },
-            Vertex { position: [ 0.25, -0.1] },
+            Vertex { position: [ 0.55, -0.1] },
             Vertex { position: [ 0.9,   0.9] },
             Vertex { position: [ 0.9,   0.8] },
             Vertex { position: [ 0.8,   0.8] },
