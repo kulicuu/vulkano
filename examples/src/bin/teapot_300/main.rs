@@ -1,4 +1,11 @@
-
+// Copyright (c) 2016 The vulkano developers
+// Licensed under the Apache License, Version 2.0
+// <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT
+// license <LICENSE-MIT or http://opensource.org/licenses/MIT>,
+// at your option. All files in the project carrying such
+// notice may not be copied, modified, or distributed except
+// according to those terms.
 
 use vulkano::buffer::cpu_pool::CpuBufferPool;
 use vulkano::buffer::{BufferUsage, CpuAccessibleBuffer};
@@ -25,25 +32,8 @@ use winit::Window;
 
 use cgmath::{Matrix3, Matrix4, Point3, Vector3, Rad};
 
+use examples::{Vertex, Normal, VERTICES, NORMALS, INDICES};
 
-mod temp_verts_norms;
-use temp_verts_norms::{Normal, Vertex};
-
-
-
-use std::path::Path;
-use std::ffi::OsStr;
-
-use std::fs::File;
-use std::io::BufReader;
-
-
-use obj::*;
-
-use std::env;
-
-
-use std::iter::Map;
 use std::iter;
 use std::sync::Arc;
 use std::time::Instant;
@@ -51,56 +41,6 @@ use std::time::Instant;
 fn main() {
     // The start of this example is exactly the same as `triangle`. You should read the
     // `triangle` example if you haven't done so yet.
-
-    let path = env::current_dir();
-
-    println!("The current directory is {:?}", path);
-
-
-    let falcon_input = BufReader::new(File::open("./examples/src/bin/peregrine/export_700.obj").unwrap());
-
-
-
-
-
-    // println!("The Obj type {:?}", Obj);
-    let falcon_model : Obj = load_obj(falcon_input).unwrap();
-
-    // println!("Vertices {:?}", falcon_model.vertices);
-
-
-    let x383 = falcon_model.indices.len();
-    println!("x383 {:?}", x383);
-
-
-
-    // let n33 = falcon_model.vertices.clone().into_iter().map(|v88| Normal {normal: v88});
-    let NORMALS: Vec<Normal> = falcon_model.vertices.clone().into_iter().map(|v88| {
-        // let x80 = vec!(v88.normal);
-        // let norm_tuple : (f32, f32, f32) = (x80[0], x80[1], x80[2]);
-        Normal { normal: (v88.normal[0], v88.normal[1], v88.normal[2]) }
-
-        // norm_tuple;
-    }).collect::<Vec<Normal>>();
-
-
-    // for n77 in n33.clone().into_iter() {
-    //     println!("n77 {:?}", n77);
-    // }
-    //
-    // for v33 in falcon_model.vertices.clone().into_iter() {
-    //     println!("v33 {:?}", v33);
-    // }
-
-
-    let VERTICES = falcon_model.vertices;
-    let INDICES = falcon_model.indices;
-
-    // let NORMALS = vec!(n33.clone());
-
-
-
-
 
     let extensions = vulkano_win::required_extensions();
     let instance = Instance::new(None, &extensions, None).unwrap();
@@ -220,8 +160,9 @@ fn main() {
             //       instead the origin is at the upper left in Vulkan, so we reverse the Y axis
             let aspect_ratio = dimensions[0] as f32 / dimensions[1] as f32;
             let proj = cgmath::perspective(Rad(std::f32::consts::FRAC_PI_2), aspect_ratio, 0.01, 100.0);
-            let view = Matrix4::look_at(Point3::new(0.4, 0.4, 1.0), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -1.0, 0.0));
+            let view = Matrix4::look_at(Point3::new(0.4, 0.4, 1.0), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -1.0, 1.0));
             let scale = Matrix4::from_scale(0.01);
+
 
             let uniform_data = vs::ty::Data {
                 world: Matrix4::from(rotation).into(),
@@ -251,7 +192,7 @@ fn main() {
             .begin_render_pass(
                 framebuffers[image_num].clone(), false,
                 vec![
-                    [0.0, 0.0, 1.0, 1.0].into(),
+                    [0.2, 0.3, 0.9, 0.83].into(),
                     1f32.into()
                 ]
             ).unwrap()
@@ -343,13 +284,13 @@ fn window_size_dependent_setup(
 mod vs {
     vulkano_shaders::shader!{
         ty: "vertex",
-        path: "src/bin/teapot/vert.glsl"
+        path: "src/bin/teapot_300/vert.glsl"
     }
 }
 
 mod fs {
     vulkano_shaders::shader!{
         ty: "fragment",
-        path: "src/bin/teapot/frag.glsl"
+        path: "src/bin/teapot_300/frag.glsl"
     }
 }

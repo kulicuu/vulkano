@@ -1,0 +1,39 @@
+# 
+# Wavefront material file
+# Converted by the DEEP Exploration  Deep Exploration 5.7 5.7.0.4228 Release
+# Right Hemisphere, LTD
+# http://www.righthemisphere.com/
+# 
+
+newmtl F16C_Df5_Mat_SG
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+illum 2
+Ns 50.4768
+map_Kd F16C_Df5.bmp
+map_bump 
+bump 
+map_opacity 
+map_d 
+refl 
+map_kS F16C_Sp7.bmp
+map_kA 
+map_Ns 
+
+newmtl F16C_Df5_Glass_Mat_SG
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 0.97 0.88
+illum 2
+Ns 52
+d 0.21
+map_Kd F16C_Df5.bmp
+map_bump 
+bump 
+map_opacity 
+map_d 
+refl 
+map_kS 
+map_kA 
+map_Ns 
