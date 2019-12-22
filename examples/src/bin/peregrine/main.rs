@@ -220,8 +220,8 @@ fn main() {
             //       instead the origin is at the upper left in Vulkan, so we reverse the Y axis
             let aspect_ratio = dimensions[0] as f32 / dimensions[1] as f32;
             let proj = cgmath::perspective(Rad(std::f32::consts::FRAC_PI_2), aspect_ratio, 0.01, 100.0);
-            let view = Matrix4::look_at(Point3::new(0.4, 0.4, 1.0), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -1.0, 0.0));
-            let scale = Matrix4::from_scale(0.01);
+            let view = Matrix4::look_at(Point3::new(0.2, 0.4, 0.2), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -0.2, 0.0));
+            let scale = Matrix4::from_scale(0.045);
 
             let uniform_data = vs::ty::Data {
                 world: Matrix4::from(rotation).into(),
