@@ -219,8 +219,8 @@ fn main() {
             // note: this teapot was meant for OpenGL where the origin is at the lower left
             //       instead the origin is at the upper left in Vulkan, so we reverse the Y axis
             let aspect_ratio = dimensions[0] as f32 / dimensions[1] as f32;
-            let proj = cgmath::perspective(Rad(std::f32::consts::FRAC_PI_2), aspect_ratio, 0.01, 100.0);
-            let view = Matrix4::look_at(Point3::new(0.2, 0.4, 0.2), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -0.2, 0.0));
+            let proj = cgmath::perspective(Rad(std::f32::consts::FRAC_PI_2), aspect_ratio, 0.11, 100.0);
+            let view = Matrix4::look_at(Point3::new(0.2, 0.4, 0.2), Point3::new(0.0, 0.0, 0.0), Vector3::new(2.0, -0.8, 18.0));
             let scale = Matrix4::from_scale(0.045);
 
             let uniform_data = vs::ty::Data {
@@ -247,11 +247,13 @@ fn main() {
             Err(err) => panic!("{:?}", err)
         };
 
+
+
         let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
             .begin_render_pass(
                 framebuffers[image_num].clone(), false,
                 vec![
-                    [0.0, 0.0, 1.0, 1.0].into(),
+                    [0.0, 0.4, 0.5, 0.4].into(),
                     1f32.into()
                 ]
             ).unwrap()
@@ -284,6 +286,8 @@ fn main() {
             }
         }
 
+
+        let mut nothing = 45;
         let mut done = false;
         events_loop.poll_events(|ev| {
             match ev {
@@ -340,16 +344,18 @@ fn window_size_dependent_setup(
     (pipeline, framebuffers)
 }
 
+
+
 mod vs {
     vulkano_shaders::shader!{
         ty: "vertex",
-        path: "src/bin/teapot/vert.glsl"
+        path: "src/bin/peregrine/vert.glsl"
     }
 }
 
 mod fs {
     vulkano_shaders::shader!{
         ty: "fragment",
-        path: "src/bin/teapot/frag.glsl"
+        path: "src/bin/peregrine/frag.glsl"
     }
 }
