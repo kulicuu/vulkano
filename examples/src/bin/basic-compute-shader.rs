@@ -73,18 +73,19 @@ fn main() {
             vulkano_shaders::shader!{
                 ty: "compute",
                 src: "
-#version 450
+                    #version 450
 
-layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+                    layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
-layout(set = 0, binding = 0) buffer Data {
-    uint data[];
-} data;
+                    layout(set = 0, binding = 0) buffer Data {
+                        uint data[];
+                    } data;
 
-void main() {
-    uint idx = gl_GlobalInvocationID.x;
-    data.data[idx] *= 12;
-}"
+                    void main() {
+                        uint idx = gl_GlobalInvocationID.x;
+                        data.data[idx] *= 12;
+                    }
+                "
             }
         }
         let shader = cs::Shader::load(device.clone()).unwrap();
@@ -96,7 +97,7 @@ void main() {
         // Iterator that produces the data.
         let data_iter = (0 .. 65536u32).map(|n| n);
         // Builds the buffer and fills it with this iterator.
-        CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), data_iter).unwrap()
+        CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, data_iter).unwrap()
     };
 
     // In order to let the shader access the buffer, we need to build a *descriptor set* that
