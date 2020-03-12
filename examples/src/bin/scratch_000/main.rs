@@ -89,9 +89,6 @@ fn main() {
 
 
 
-
-
-
     let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch_000/lear_000.obj"));
 
     let (models, materials) = lear.unwrap();
@@ -99,48 +96,38 @@ fn main() {
 
 
 
-
-
-
-
-
-    // let mut counter = 0;
-
-    // we'll need the count at some point, might as well try the upfront approach first.
-
-    let card = models.iter().count();
-
-    println!("card {:?}", card);
-    // but this number doesn't help.
-
     let mut vertices : Vec<Vertex> = Vec::new();
     let mut normals : Vec<Normal> = Vec::new();
+    let mut indices : Vec<u32> = Vec::new();
 
     for (idx, model) in models.iter().enumerate() {
         let mesh = &model.mesh;
-        // println!("mesh counter: {:?}", &counter);
-        // println!("idx {:?}", idx);
 
-
-        // println!("123123123: {:?}", mesh.positions);
 
         let vertices_count = (&mesh.positions.iter().count() + 1) / 3;
+        indices.extend_from_slice(&mesh.indices);
+
+        println!("Positions card: {:?}", &mesh.positions.iter().count());
+        println!("Normals card {:?}", &mesh.normals.iter().count());
+        println!("Indices card {:?}", &mesh.indices.iter().count());
+
+
+
+
         for jdx in 0..vertices_count {
             let cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
             let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
+            // let indices_cursor = &mesh.indices[(jdx * 3)..((jdx * 3) + 3)];
             // println!("aeuauejjj :: 3939 {:?}", cursor[0]);
             vertices.push(Vertex { position: (cursor[0], cursor[1], cursor[2]) });
             normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
+            // indices.push(indices_cursor[0]);
+            // indices.push(indices_cursor[1]);
+            // indices.push(indices_cursor[2]);
+
         }
 
-        // if counter == 0 {
-        //     println!("Hopefully you only see this line once.");
-        //     // we need to roll through this data three elements at a time making
-        //     // a Vertex type
-        // }
 
-
-        // counter = &counter + 1;
     }
 
     println!("888484 {:?}", vertices.iter().count());
@@ -150,24 +137,12 @@ fn main() {
     // positions, normals, texcoords, indices, material_id
     println!("# of models: {}", models.len());
     println!("# of materials: {}", materials.len());
-    println!("aeou {:?}", models[0]);
-    println!("bsnth {:?}", models[1]);
+    // println!("aeou {:?}", models[0]);
+    // println!("bsnth {:?}", models[1]);
+    // println!("indices {:?}", indices);
 
 
 
-
-    // for (i, m) in models.iter().enumerate() {
-    //     let mesh = &m.mesh;
-    //
-    //     println!("x333 {:?}", &mesh.positions.len());
-    //
-    //     // let length = &mesh.positions.len();
-    //
-    //     let v1: Vec<f32> = Vec::with_capacity(mesh.positions.len());
-    //
-    //
-    //
-    // }
 
 
 
