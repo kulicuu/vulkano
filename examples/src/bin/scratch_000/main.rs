@@ -60,7 +60,7 @@ struct render_payload {
 
 
 
-fn process_verts (mesh: tobj::Mesh) -> render_payload {
+fn process_verts (mesh: &tobj::Mesh) -> render_payload {
     // input will be a mesh positions array for a model mesh group.
     // output will be everything
 
@@ -158,33 +158,36 @@ fn main() {
 
     let mut counter = 0;
     for (idx, model) in models.iter().enumerate() {
-        let mesh = &model.mesh;
 
 
-        let vertices_count = (&mesh.positions.iter().count() + 1) / 3;
-        indices.extend_from_slice(&mesh.indices);
+        let payload = process_verts(&model.mesh);
+        // let mesh = &model.mesh;
 
-        println!("Positions card: {:?}", &mesh.positions.iter().count());
-        println!("Normals card {:?}", &mesh.normals.iter().count());
-        println!("Indices card {:?}", &mesh.indices.iter().count());
+
+        // let vertices_count = (&mesh.positions.iter().count() + 1) / 3;
+        // indices.extend_from_slice(&mesh.indices);
+
+        // println!("Positions card: {:?}", &mesh.positions.iter().count());
+        // println!("Normals card {:?}", &mesh.normals.iter().count());
+        // println!("Indices card {:?}", &mesh.indices.iter().count());
 
         counter = counter + 1;
 
-        if counter == 5 {
-            for jdx in 0..vertices_count {
-                let cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
-                let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
-                // let indices_cursor = &mesh.indices[(jdx * 3)..((jdx * 3) + 3)];
-                // println!("aeuauejjj :: 3939 {:?}", cursor[0]);
-                vertices.push(Vertex { position: (cursor[0], cursor[1], cursor[2]) });
-                normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
-                // indices.push(indices_cursor[0]);
-                // indices.push(indices_cursor[1]);
-                // indices.push(indices_cursor[2]);
-
-            }
-
-        }
+        // if counter == 5 {
+        //     for jdx in 0..vertices_count {
+        //         let cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
+        //         let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
+        //         // let indices_cursor = &mesh.indices[(jdx * 3)..((jdx * 3) + 3)];
+        //         // println!("aeuauejjj :: 3939 {:?}", cursor[0]);
+        //         vertices.push(Vertex { position: (cursor[0], cursor[1], cursor[2]) });
+        //         normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
+        //         // indices.push(indices_cursor[0]);
+        //         // indices.push(indices_cursor[1]);
+        //         // indices.push(indices_cursor[2]);
+        //
+        //     }
+        //
+        // }
 
 
 
