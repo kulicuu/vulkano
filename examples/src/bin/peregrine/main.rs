@@ -27,6 +27,8 @@ use winit::event::{Event, WindowEvent};
 use cgmath::{Matrix3, Matrix4, Point3, Vector3, Rad};
 
 
+
+
 mod temp_verts_norms;
 use temp_verts_norms::{Normal, Vertex};
 
@@ -70,7 +72,7 @@ fn main() {
 
 
     let x383 = falcon_model.indices.len();
-    println!("x383 {:?}", x383);
+    println!("x38uaaeaeuaaeuauauuee3 {:?}", x383);
 
 
 

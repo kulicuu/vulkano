@@ -18,23 +18,6 @@
 // *    tessellation control shader and a tessellation evaluation shader
 // *    tessellation_shaders(..), patch_list(3) and polygon_mode_line() are called on the pipeline builder
 
-
-
-
-
-extern crate multiinput;
-
-
-use multiinput::*;
-
-
-
-use gilrs::{Gilrs, Button, Event as gilrs_event};
-
-
-
-
-
 use vulkano::buffer::{BufferUsage, CpuAccessibleBuffer};
 use vulkano::command_buffer::{AutoCommandBufferBuilder, DynamicState};
 use vulkano::device::{Device, DeviceExtensions};
@@ -63,9 +46,10 @@ mod vs {
 
             layout(location = 0) in vec2 position;
 
-void main() {
-    gl_Position = vec4(position, 0, 3.3);
-}"
+            void main() {
+                gl_Position = vec4(position, 0.0, 1.0);
+            }
+        "
     }
 }
 
@@ -151,39 +135,8 @@ mod fs {
 
 
 fn main() {
-<<<<<<< HEAD
-
-
-
-    let mut manager = RawInputManager::new().unwrap();
-
-    manager.register_devices(DeviceType::Joysticks(XInputInclude::True));
-
-    let mut gilrs = Gilrs::new().unwrap();
-    println!("test39939");
-    println!("{:?}", gilrs);
-    for (_id, gamepad) in gilrs.gamepads() {
-        println!("{} is {:?}", gamepad.name(), gamepad.power_info());
-    }
-
-    // 'outer: loop{
-    //     if let Some(event) = manager.get_event(){
-    //         match event{
-    //             RawEvent::KeyboardEvent(_,  KeyId::Escape, State::Pressed)
-    //                 => break 'outer,
-    //             _ => (),
-    //         }
-    //         println!("{:?}", event);
-    //     }
-    // }
-    // println!("Finishing");
-
-    let extensions = vulkano_win::required_extensions();
-    let instance = Instance::new(None, &extensions, None).unwrap();
-=======
     let required_extensions = vulkano_win::required_extensions();
     let instance = Instance::new(None, &required_extensions, None).unwrap();
->>>>>>> 18189e07242a3ba960948da6a0243bf87d0e24d4
 
     let physical = PhysicalDevice::enumerate(&instance).next().unwrap();
     println!("Using device: {} (type: {:?})", physical.name(), physical.ty());
