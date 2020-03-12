@@ -49,6 +49,35 @@ pub struct Normal {
 
 vulkano::impl_vertex!(Normal, normal);
 
+
+
+
+struct render_payload {
+    vertices: Vec<Vertex>,
+    normals: Vec<Normal>,
+    indices: Vec<i32>
+}
+
+
+
+fn process_verts (input: tobj::Mesh) -> render_payload {
+    // input will be a mesh positions array for a model mesh group.
+    // output will be everything
+    let vertices_count = (&input.positions.iter().count() + 1) / 3;
+
+
+    for jdx in 0..vertices_count {
+        let vertex_cursor = &input
+    }
+
+
+
+
+
+
+
+}
+
 fn main() {
 
 
@@ -108,6 +137,8 @@ fn main() {
     let mut normals : Vec<Normal> = Vec::new();
     let mut indices : Vec<u32> = Vec::new();
 
+
+    let mut counter = 0;
     for (idx, model) in models.iter().enumerate() {
         let mesh = &model.mesh;
 
@@ -119,21 +150,24 @@ fn main() {
         println!("Normals card {:?}", &mesh.normals.iter().count());
         println!("Indices card {:?}", &mesh.indices.iter().count());
 
+        counter = counter + 1;
 
+        if counter == 5 {
+            for jdx in 0..vertices_count {
+                let cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
+                let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
+                // let indices_cursor = &mesh.indices[(jdx * 3)..((jdx * 3) + 3)];
+                // println!("aeuauejjj :: 3939 {:?}", cursor[0]);
+                vertices.push(Vertex { position: (cursor[0], cursor[1], cursor[2]) });
+                normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
+                // indices.push(indices_cursor[0]);
+                // indices.push(indices_cursor[1]);
+                // indices.push(indices_cursor[2]);
 
-
-        for jdx in 0..vertices_count {
-            let cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
-            let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
-            // let indices_cursor = &mesh.indices[(jdx * 3)..((jdx * 3) + 3)];
-            // println!("aeuauejjj :: 3939 {:?}", cursor[0]);
-            vertices.push(Vertex { position: (cursor[0], cursor[1], cursor[2]) });
-            normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
-            // indices.push(indices_cursor[0]);
-            // indices.push(indices_cursor[1]);
-            // indices.push(indices_cursor[2]);
+            }
 
         }
+
 
 
     }
@@ -239,8 +273,8 @@ fn main() {
                     //       instead the origin is at the upper left in Vulkan, so we reverse the Y axis
                     let aspect_ratio = dimensions[0] as f32 / dimensions[1] as f32;
                     let proj = cgmath::perspective(Rad(std::f32::consts::FRAC_PI_2), aspect_ratio, 0.01, 100.0);
-                    let view = Matrix4::look_at(Point3::new(0.3, 0.3, 1.0), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -1.0, 0.0));
-                    let scale = Matrix4::from_scale(0.01);
+                    let view = Matrix4::look_at(Point3::new(0.2, 0.3, 1.0), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -1.0, 0.0));
+                    let scale = Matrix4::from_scale(0.0021);
 
                     let uniform_data = vs::ty::Data {
                         world: Matrix4::from(rotation).into(),
