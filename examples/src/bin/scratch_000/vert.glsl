@@ -1,26 +1,20 @@
-uniform mat4 uModelViewMatrix;
-uniform mat4 uModelViewProjectionMatrix;
-uniform mat3 uNormalMatrix;
+#version 450
 
-in vec4 aVertex;
-in vec4 aTexCoord0;
-in vec4 aColor;
-in vec3 aNormal;
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 normal;
 
-out vec4 vColor;
-out float vLightIntensity;
-out vec2 vST;
+layout(location = 0) out vec3 v_normal;
 
-const vec3 LIGHTPOS = vec3( 0. , 0. , 10. );
+layout(set = 0, binding = 0) uniform Data {
+    mat4 world;
+    mat4 view;
+    mat4 proj;
+} uniforms;
 
 void main() {
-    vec3 transNorm = normalize( vec3 ( uNormalMatrix * aNormal ));
-    vec3 ECposition = vec3( uModelViewMatrix * aVertex );
-    vLightIntensity = dot( normalize(LIGHTPOS - ECPosition), transNorm );
-    vLightIntensity = clamp( .3 + abs( vLightIntensity ), 0. , 1. );
-
-    vST = aTexCoord0.st;
-    vColor = aColor;
-    gl_Position = uModelViewProjectionMatrix * aVertex;
+    mat4 worldview = uniforms.view * uniforms.world;
+    v_normal = transpose(inverse(mat3(worldview))) * normal;
+    gl_Position = uniforms.proj * worldview * vec4(position, 1.0);
+}
 
 }
