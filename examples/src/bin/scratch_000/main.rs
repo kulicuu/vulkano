@@ -60,18 +60,36 @@ struct render_payload {
 
 
 
-fn process_verts (input: tobj::Mesh) -> render_payload {
+fn process_verts (mesh: tobj::Mesh) -> render_payload {
     // input will be a mesh positions array for a model mesh group.
     // output will be everything
-    let vertices_count = (&input.positions.iter().count() + 1) / 3;
+
+
+
+    let mut vertices : Vec<Vertex> = Vec::new();
+    let mut normals : Vec<Normal> = Vec::new();
+    let mut indices : Vec<i32> = Vec::new();
+
+    let vertices_count = (&mesh.positions.iter().count() + 1) / 3;
 
 
     for jdx in 0..vertices_count {
-        let vertex_cursor = &input
+        let vertex_cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
+        let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
+        vertices.push(Vertex { position: (vertex_cursor[0], vertex_cursor[1], vertex_cursor[2]) });
+        normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
+
+
+
     }
 
 
 
+    render_payload {
+        vertices: vertices,
+        normals: normals,
+        indices: indices
+    }
 
 
 
