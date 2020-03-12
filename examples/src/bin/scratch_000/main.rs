@@ -104,9 +104,9 @@ fn main() {
 
 
 
-    let vertices : Vec<Vertex> = Vec::new();
-    let normals : Vec<Normal> = Vec::new();
-    let indices : Vec<u32> = Vec::new();
+    let mut vertices : Vec<Vertex> = Vec::new();
+    let mut normals : Vec<Normal> = Vec::new();
+    let mut indices : Vec<u32> = Vec::new();
 
     for (idx, model) in models.iter().enumerate() {
         let mesh = &model.mesh;
@@ -163,9 +163,9 @@ fn main() {
 
     let vertex_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, vertices.iter().cloned()).unwrap();
 
-    let normals_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, normals.iter.cloned()).unwrap();
+    let normals_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, normals.iter().cloned()).unwrap();
 
-    let index_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices.iter.cloned()).unwrap();
+    let index_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices.iter().cloned()).unwrap();
 
     let uniform_buffer = CpuBufferPool::<vs::ty::Data>::new(device.clone(), BufferUsage::all());
 
