@@ -52,20 +52,19 @@ pub struct Normal {
 vulkano::impl_vertex!(Normal, normal);
 
 
-struct render_payload {
+struct RenderPayload {
     vertices: Vec<Vertex>,
     normals: Vec<Normal>,
-    indices: Vec<u32>
+    indices: Vec<u16>
 }
 
 
-
-fn process_verts (mesh: &tobj::Mesh) -> render_payload {
+fn process_verts (mesh: &tobj::Mesh) -> RenderPayload {
     // input will be a mesh positions array for a model mesh group.
     // output will be everything
     let mut vertices : Vec<Vertex> = Vec::new();
     let mut normals : Vec<Normal> = Vec::new();
-    let mut indices : Vec<u32> = Vec::new();
+    let mut indices : Vec<u16> = Vec::new();
     let vertices_count = (&mesh.positions.iter().count() + 1) / 3;
     for jdx in 0..vertices_count {
         let vertex_cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
@@ -73,7 +72,7 @@ fn process_verts (mesh: &tobj::Mesh) -> render_payload {
         vertices.push(Vertex { position: (vertex_cursor[0], vertex_cursor[1], vertex_cursor[2]) });
         normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
     }
-    render_payload {
+    RenderPayload {
         vertices: vertices,
         normals: normals,
         indices: indices
@@ -82,9 +81,6 @@ fn process_verts (mesh: &tobj::Mesh) -> render_payload {
 
 
 fn main() {
-
-
-
     let required_extensions = vulkano_win::required_extensions();
 
     let instance = Instance::new(None, &required_extensions, None).unwrap();
@@ -127,7 +123,7 @@ fn main() {
 
 
 
-    let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch_000/lear_000.obj"));
+    let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_000.obj"));
 
     let (models, materials) = lear.unwrap();
 
@@ -141,34 +137,43 @@ fn main() {
     // let idx_stack: Vec<Vec<i32>> = Vec::new();
 
 
-    let vertices : Vec<Vertex> = Vec::new();
-    let normals : Vec<Normal> = Vec::new();
-    let indices : Vec<u16> = Vec::new();
+    let arq : RenderPayload = process_verts(&models.iter().nth(1).unwrap().mesh);
 
-    let mut payload_stack: Vec<render_payload> = Vec::new();
+
+
+    let mut vertices : Vec<Vertex> = arq.vertices;
+    let mut normals : Vec<Normal> = arq.normals;
+    let mut indices : Vec<u16> = arq.indices;
+
+    // let vertices : Vec<Vertex>;
+    // let normals : Vec<Normal>;
+    // let indices : Vec<u16>;
+
+    // let mut payload_stack: Vec<render_payload> = Vec::new();
 
 
     // let mut buffer_stack: Vec<&CpuAccessibleBuffer> = Vec;:new();
 
-    for (idx, model) in models.iter().enumerate() {
-        let mut payload = process_verts(&model.mesh);
+    // for (idx, model) in models.iter().enumerate() {
+        // let mut payload = process_verts(&model.mesh);
         // let vertex_buffer_200 = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, payload.vertices.iter().cloned()).unwrap();
 
-        if idx == 1 {
-            let mesh = &model.mesh;
+        // if idx == 3 {
+        //     let mesh = &model.mesh;
+        //
+        //     let arq : render_payload = process_verts(&mesh);
+        //
+        //
+        //     vertices = arq.vertices;
+        //     // vertices = [vertices, arq.vertices].concat();
+        //     normals = [normals, arq.normals].concat();
+        //     indices = [indices, arq.indices].concat();
 
+        // }
+        // payload_stack.push(payload);
+    // }
 
-
-            let x33 = process_verts(&model.mesh);
-            println!("aeou: {}", x33.vertices.iter().count());
-            // vertices = x33.vertices;
-            // normals = vec!(&x33.normals)
-
-        }
-        payload_stack.push(payload);
-    }
-
-
+    // println!("We have vertices ? {:?}", vertices.iter().count());
 
     println!("Using device: {} (type: {:?})", physical.name(), physical.ty());
 
@@ -396,16 +401,17 @@ fn window_size_dependent_setup(
 
 
 
+
 mod vs {
     vulkano_shaders::shader!{
         ty: "vertex",
-        path: "src/bin/teapot/vert.glsl"
+        path: "src/bin/scratch/vert.glsl"
     }
 }
 
 mod fs {
     vulkano_shaders::shader!{
         ty: "fragment",
-        path: "src/bin/teapot/frag.glsl"
+        path: "src/bin/scratch/frag.glsl"
     }
 }

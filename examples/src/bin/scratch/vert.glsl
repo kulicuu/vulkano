@@ -16,5 +16,3 @@ void main() {
     v_normal = transpose(inverse(mat3(worldview))) * normal;
     gl_Position = uniforms.proj * worldview * vec4(position, 1.0);
 }
-
-}
