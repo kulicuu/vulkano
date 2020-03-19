@@ -45,11 +45,55 @@ struct Vertex {
 vulkano::impl_vertex!(Vertex, position);
 
 #[derive(Default, Copy, Clone)]
-pub struct Normal {
+struct Normal {
     normal: (f32, f32, f32)
 }
 
 vulkano::impl_vertex!(Normal, normal);
+
+
+const VERTICES_888 : [Vertex; 10] = [
+    Vertex { position: (0.0, 0.0, 0.0) },   // dummy vector because in the original model indices
+                                            // start at 1
+    Vertex { position: (40.6266, 28.3457, -1.10804) },
+    Vertex { position: (40.0714, 30.4443, -1.10804) },
+    Vertex { position: (40.7155, 31.1438, -1.10804) },
+    Vertex { position: (42.0257, 30.4443, -1.10804) },
+    Vertex { position: (43.4692, 28.3457, -1.10804) },
+    Vertex { position: (37.5425, 28.3457, 14.5117) },
+    Vertex { position: (37.0303, 30.4443, 14.2938) },
+    Vertex { position: (37.6244, 31.1438, 14.5466) },
+    Vertex { position: (38.8331, 30.4443, 15.0609) }
+];
+
+
+const NORMALS_888 : [Normal; 10] = [
+    Normal { normal: (0.0, 0.0, 0.0) },     // dummy vector because in the original model indices
+                                            // start at 1
+    Normal { normal: (-0.966742, -0.255752, 0.0) },
+    Normal { normal: (-0.966824, 0.255443, 0.0) },
+    Normal { normal: (-0.092052, 0.995754, 0.0) },
+    Normal { normal: (0.68205, 0.731305, 0.0) },
+    Normal { normal: (0.870301, 0.492521, -0.0) },
+    Normal { normal: (-0.893014, -0.256345, -0.369882) },
+    Normal { normal: (-0.893437, 0.255997, -0.369102) },
+    Normal { normal: (-0.0838771, 0.995843, -0.0355068) },
+    Normal { normal: (0.629724, 0.73186, 0.260439) }
+];
+
+
+const INDICES_888: [u16; 30] = [
+    8, 7, 2,
+    2, 3, 8,
+    9, 8, 3,
+    3, 4, 9,
+    10, 9, 4,
+    4, 5, 10,
+    12, 11, 6,
+    6, 7, 12,
+    13, 12, 7,
+    7, 8, 13
+];
 
 
 struct RenderPayload {
@@ -79,6 +123,16 @@ fn process_verts (mesh: &tobj::Mesh) -> RenderPayload {
     }
 }
 
+
+
+//
+// fn process_verts_002 (mesh: &tobj::Mesh) -> RenderPayload_002 {
+//
+//
+// }
+
+// 3072
+// 531
 
 fn main() {
     let required_extensions = vulkano_win::required_extensions();
@@ -127,64 +181,29 @@ fn main() {
 
     let (models, materials) = lear.unwrap();
 
-    // let vertices : Vec<Vertex>;
-    // let normals : Vec<Normal>;
-    // let indices : Vec<i32>;
+    let mesh = models.iter().nth(1).unwrap();
+    println!("Mesh: {:?}", mesh.mesh.positions);
 
+    let vertices = mesh.mesh.positions.iter().cloned();
+    // let vertices = VERTICES_888.iter().cloned();
+    let vertex_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, vertices).unwrap();
 
-    // let vert_stack: Vec<Vec<Vertex>> = Vec::new();
-    // let norm_stack: Vec<Vec<Normal>> = Vec::new();
-    // let idx_stack: Vec<Vec<i32>> = Vec::new();
+    // let normals = NORMALS_888.iter().cloned();
+    let normals = mesh.mesh.normals.iter().cloned();
+    let normals_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, normals).unwrap();
 
-
-    let arq : RenderPayload = process_verts(&models.iter().nth(1).unwrap().mesh);
-
-
-
-    let mut vertices : Vec<Vertex> = arq.vertices;
-    let mut normals : Vec<Normal> = arq.normals;
-    let mut indices : Vec<u16> = arq.indices;
-
-    // let vertices : Vec<Vertex>;
-    // let normals : Vec<Normal>;
-    // let indices : Vec<u16>;
-
-    // let mut payload_stack: Vec<render_payload> = Vec::new();
-
-
-    // let mut buffer_stack: Vec<&CpuAccessibleBuffer> = Vec;:new();
-
-    // for (idx, model) in models.iter().enumerate() {
-        // let mut payload = process_verts(&model.mesh);
-        // let vertex_buffer_200 = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, payload.vertices.iter().cloned()).unwrap();
-
-        // if idx == 3 {
-        //     let mesh = &model.mesh;
-        //
-        //     let arq : render_payload = process_verts(&mesh);
-        //
-        //
-        //     vertices = arq.vertices;
-        //     // vertices = [vertices, arq.vertices].concat();
-        //     normals = [normals, arq.normals].concat();
-        //     indices = [indices, arq.indices].concat();
-
-        // }
-        // payload_stack.push(payload);
-    // }
-
-    // println!("We have vertices ? {:?}", vertices.iter().count());
-
-    println!("Using device: {} (type: {:?})", physical.name(), physical.ty());
+    // let indices = INDICES_888.iter().cloned();
+    let indices = mesh.mesh.indices.iter().cloned();
+    let index_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices).unwrap();
 
 
 
 
-    let vertex_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, vertices.iter().cloned()).unwrap();
 
-    let normals_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, normals.iter().cloned()).unwrap();
 
-    let index_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices.iter().cloned()).unwrap();
+
+
+
 
     let uniform_buffer = CpuBufferPool::<vs::ty::Data>::new(device.clone(), BufferUsage::all());
 
@@ -289,22 +308,6 @@ fn main() {
                     recreate_swapchain = true;
                 }
 
-
-                // let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
-                //     .begin_render_pass(
-                //         framebuffers[image_num].clone(), false,
-                //         vec![
-                //             [0.0, 0.0, 1.0, 1.0].into(),
-                //             1f32.into()
-                //         ]
-                //     ).unwrap()
-                //     .draw_indexed(
-                //         pipeline.clone(),
-                //         &DynamicState::none(),
-                //         vec!(vertex_buffer.clone(), normals_buffer.clone()),
-                //         index_buffer.clone(), set.clone(), ()).unwrap()
-                //     .end_render_pass().unwrap()
-                //     .build().unwrap();
 
 
 
