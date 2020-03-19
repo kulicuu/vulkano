@@ -203,23 +203,23 @@ fn main() {
 
     let vertices200 = mesh200.mesh.positions.iter().cloned();
     // let vertices = VERTICES_888.iter().cloned();
-    let vertex_buffer200 = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, vertices200).unwrap();
+    let vertex_buffer200 : std::sync::Arc<CpuAccessibleBuffer::<[f32]>> = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, vertices200).unwrap();
 
     // let normals = NORMALS_888.iter().cloned();
     let normals = mesh200.mesh.normals.iter().cloned();
-    let normals_buffer200 = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, normals).unwrap();
+    let normals_buffer200 : std::sync::Arc<CpuAccessibleBuffer::<[f32]>>  = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, normals).unwrap();
 
     // let indices = INDICES_888.iter().cloned();
     let indices = mesh200.mesh.indices.iter().cloned();
-    let index_buffer200 = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices).unwrap();
+    let index_buffer200 : std::sync::Arc<CpuAccessibleBuffer::<[u32]>> = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices).unwrap();
 
 
 
 
     struct Package {
-        vertex_buffer: CpuAccessibleBuffer::<Vertex>,
-        normals_buffer: CpuAccessibleBuffer::<Normal>,
-        index_buffer: CpuAccessibleBuffer::<i16>
+        vertex_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
+        normals_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
+        index_buffer: std::sync::Arc<CpuAccessibleBuffer::<[u32]>>
     };
 
 
@@ -228,7 +228,13 @@ fn main() {
 
 
     for (index, model) in models.iter().enumerate() {
+        let mesh_500 = &model.mesh;
 
+        mashes.push(Package {
+            vertex_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.positions.iter().cloned()).unwrap(),
+            normals_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.normals.iter().cloned()).unwrap(),
+            index_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.indices.iter().cloned()).unwrap()
+        });
     }
 
 
