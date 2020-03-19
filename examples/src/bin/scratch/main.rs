@@ -178,7 +178,6 @@ fn main() {
 
 
     let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_000.obj"));
-
     let (models, materials) = lear.unwrap();
 
     let mesh = models.iter().nth(10).unwrap();
@@ -216,6 +215,21 @@ fn main() {
 
 
 
+
+    struct Package {
+        vertex_buffer: CpuAccessibleBuffer::<Vertex>,
+        normals_buffer: CpuAccessibleBuffer::<Normal>,
+        index_buffer: CpuAccessibleBuffer::<i16>
+    };
+
+
+    let mut mashes : Vec<Package> = Vec::new();
+
+
+
+    for (index, model) in models.iter().enumerate() {
+
+    }
 
 
 
@@ -350,24 +364,6 @@ fn main() {
                     .end_render_pass().unwrap()
                     .build().unwrap();
 
-
-
-
-                    // let command_buffer200 = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
-                    //     .begin_render_pass(
-                    //         framebuffers[image_num].clone(), false,
-                    //         vec![
-                    //             [0.0, 0.0, 1.0, 1.0].into(),
-                    //             1f32.into()
-                    //         ]
-                    //     ).unwrap()
-                    //     .draw_indexed(
-                    //         pipeline.clone(),
-                    //         &DynamicState::none(),
-                    //         vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
-                    //         index_buffer200.clone(), set.clone(), ()).unwrap()
-                    //     .end_render_pass().unwrap()
-                    //     .build().unwrap();
 
                 let future = previous_frame_end.take().unwrap()
                     .join(acquire_future)
