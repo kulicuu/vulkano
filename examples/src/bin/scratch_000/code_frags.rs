@@ -17,6 +17,21 @@
 
 
 
+// if counter == 5 {
+//     for jdx in 0..vertices_count {
+//         let cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
+//         let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
+//         // let indices_cursor = &mesh.indices[(jdx * 3)..((jdx * 3) + 3)];
+//         // println!("aeuauejjj :: 3939 {:?}", cursor[0]);
+//         vertices.push(Vertex { position: (cursor[0], cursor[1], cursor[2]) });
+//         normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
+//         // indices.push(indices_cursor[0]);
+//         // indices.push(indices_cursor[1]);
+//         // indices.push(indices_cursor[2]);
+//
+//     }
+//
+// }
 
 
 

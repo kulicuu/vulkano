@@ -19,6 +19,8 @@ use vulkano::swapchain;
 use vulkano::sync::{GpuFuture, FlushError};
 use vulkano::sync;
 
+use std::collections::HashMap;
+
 use vulkano_win::VkSurfaceBuild;
 use winit::window::{WindowBuilder, Window};
 use winit::event_loop::{EventLoop, ControlFlow};
@@ -50,12 +52,10 @@ pub struct Normal {
 vulkano::impl_vertex!(Normal, normal);
 
 
-
-
 struct render_payload {
     vertices: Vec<Vertex>,
     normals: Vec<Normal>,
-    indices: Vec<i32>
+    indices: Vec<u32>
 }
 
 
@@ -63,38 +63,23 @@ struct render_payload {
 fn process_verts (mesh: &tobj::Mesh) -> render_payload {
     // input will be a mesh positions array for a model mesh group.
     // output will be everything
-
-
-
     let mut vertices : Vec<Vertex> = Vec::new();
     let mut normals : Vec<Normal> = Vec::new();
-    let mut indices : Vec<i32> = Vec::new();
-
+    let mut indices : Vec<u32> = Vec::new();
     let vertices_count = (&mesh.positions.iter().count() + 1) / 3;
-
-
     for jdx in 0..vertices_count {
         let vertex_cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
         let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
         vertices.push(Vertex { position: (vertex_cursor[0], vertex_cursor[1], vertex_cursor[2]) });
         normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
-
-
-
     }
-
-
-
     render_payload {
         vertices: vertices,
         normals: normals,
         indices: indices
     }
-
-
-
-
 }
+
 
 fn main() {
 
@@ -126,9 +111,7 @@ fn main() {
     ).unwrap();
 
 
-
     let queue = queues.next().unwrap();
-
 
 
     let (mut swapchain, images) = {
@@ -148,66 +131,42 @@ fn main() {
 
     let (models, materials) = lear.unwrap();
 
+    // let vertices : Vec<Vertex>;
+    // let normals : Vec<Normal>;
+    // let indices : Vec<i32>;
 
 
+    // let vert_stack: Vec<Vec<Vertex>> = Vec::new();
+    // let norm_stack: Vec<Vec<Normal>> = Vec::new();
+    // let idx_stack: Vec<Vec<i32>> = Vec::new();
 
-    let mut vertices : Vec<Vertex> = Vec::new();
-    let mut normals : Vec<Normal> = Vec::new();
-    let mut indices : Vec<u32> = Vec::new();
+
+    let vertices : Vec<Vertex> = Vec::new();
+    let normals : Vec<Normal> = Vec::new();
+    let indices : Vec<u16> = Vec::new();
+
+    let mut payload_stack: Vec<render_payload> = Vec::new();
 
 
-    let mut counter = 0;
+    // let mut buffer_stack: Vec<&CpuAccessibleBuffer> = Vec;:new();
+
     for (idx, model) in models.iter().enumerate() {
+        let mut payload = process_verts(&model.mesh);
+        // let vertex_buffer_200 = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, payload.vertices.iter().cloned()).unwrap();
 
-
-        let payload = process_verts(&model.mesh);
-        // let mesh = &model.mesh;
-
-
-        // let vertices_count = (&mesh.positions.iter().count() + 1) / 3;
-        // indices.extend_from_slice(&mesh.indices);
-
-        // println!("Positions card: {:?}", &mesh.positions.iter().count());
-        // println!("Normals card {:?}", &mesh.normals.iter().count());
-        // println!("Indices card {:?}", &mesh.indices.iter().count());
-
-        counter = counter + 1;
-
-        // if counter == 5 {
-        //     for jdx in 0..vertices_count {
-        //         let cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
-        //         let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
-        //         // let indices_cursor = &mesh.indices[(jdx * 3)..((jdx * 3) + 3)];
-        //         // println!("aeuauejjj :: 3939 {:?}", cursor[0]);
-        //         vertices.push(Vertex { position: (cursor[0], cursor[1], cursor[2]) });
-        //         normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
-        //         // indices.push(indices_cursor[0]);
-        //         // indices.push(indices_cursor[1]);
-        //         // indices.push(indices_cursor[2]);
-        //
-        //     }
-        //
-        // }
+        if idx == 1 {
+            let mesh = &model.mesh;
 
 
 
+            let x33 = process_verts(&model.mesh);
+            println!("aeou: {}", x33.vertices.iter().count());
+            // vertices = x33.vertices;
+            // normals = vec!(&x33.normals)
+
+        }
+        payload_stack.push(payload);
     }
-
-    println!("888484 {:?}", vertices.iter().count());
-    // println!("Now we see count {:?}", &vertices.iter().count());
-
-    // each mesh in models has fields :
-    // positions, normals, texcoords, indices, material_id
-    println!("# of models: {}", models.len());
-    println!("# of materials: {}", materials.len());
-    // println!("aeou {:?}", models[0]);
-    // println!("bsnth {:?}", models[1]);
-    // println!("indices {:?}", indices);
-
-
-
-
-
 
 
 
@@ -325,6 +284,25 @@ fn main() {
                     recreate_swapchain = true;
                 }
 
+
+                // let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
+                //     .begin_render_pass(
+                //         framebuffers[image_num].clone(), false,
+                //         vec![
+                //             [0.0, 0.0, 1.0, 1.0].into(),
+                //             1f32.into()
+                //         ]
+                //     ).unwrap()
+                //     .draw_indexed(
+                //         pipeline.clone(),
+                //         &DynamicState::none(),
+                //         vec!(vertex_buffer.clone(), normals_buffer.clone()),
+                //         index_buffer.clone(), set.clone(), ()).unwrap()
+                //     .end_render_pass().unwrap()
+                //     .build().unwrap();
+
+
+
                 let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
                     .begin_render_pass(
                         framebuffers[image_num].clone(), false,
@@ -347,19 +325,22 @@ fn main() {
                     .then_swapchain_present(queue.clone(), swapchain.clone(), image_num)
                     .then_signal_fence_and_flush();
 
-                 match future {
-                    Ok(future) => {
-                        previous_frame_end = Some(Box::new(future) as Box<_>);
-                    },
-                    Err(FlushError::OutOfDate) => {
-                        recreate_swapchain = true;
-                        previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
-                    }
-                    Err(e) => {
-                        println!("Failed to flush future: {:?}", e);
-                        previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
-                    }
-                }
+
+                match future {
+                   Ok(future) => {
+                       previous_frame_end = Some(Box::new(future) as Box<_>);
+                   },
+                   Err(FlushError::OutOfDate) => {
+                       recreate_swapchain = true;
+                       previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
+                   }
+                   Err(e) => {
+                       println!("Failed to flush future: {:?}", e);
+                       previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
+                   }
+               }
+
+
             },
             _ => ()
         }
