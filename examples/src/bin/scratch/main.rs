@@ -181,7 +181,7 @@ fn main() {
 
     let (models, materials) = lear.unwrap();
 
-    let mesh = models.iter().nth(1).unwrap();
+    let mesh = models.iter().nth(10).unwrap();
     println!("Mesh: {:?}", mesh.mesh.positions);
 
     let vertices = mesh.mesh.positions.iter().cloned();
@@ -198,6 +198,21 @@ fn main() {
 
 
 
+
+    let mesh200 = models.iter().nth(15).unwrap();
+    println!("Mesh: {:?}", mesh.mesh.positions);
+
+    let vertices200 = mesh200.mesh.positions.iter().cloned();
+    // let vertices = VERTICES_888.iter().cloned();
+    let vertex_buffer200 = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, vertices200).unwrap();
+
+    // let normals = NORMALS_888.iter().cloned();
+    let normals = mesh200.mesh.normals.iter().cloned();
+    let normals_buffer200 = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, normals).unwrap();
+
+    // let indices = INDICES_888.iter().cloned();
+    let indices = mesh200.mesh.indices.iter().cloned();
+    let index_buffer200 = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices).unwrap();
 
 
 
@@ -324,8 +339,35 @@ fn main() {
                         &DynamicState::none(),
                         vec!(vertex_buffer.clone(), normals_buffer.clone()),
                         index_buffer.clone(), set.clone(), ()).unwrap()
+
+                    .draw_indexed(
+                        pipeline.clone(),
+                        &DynamicState::none(),
+                        vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
+                        index_buffer200.clone(), set.clone(), ()).unwrap()
+
+
                     .end_render_pass().unwrap()
                     .build().unwrap();
+
+
+
+
+                    // let command_buffer200 = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
+                    //     .begin_render_pass(
+                    //         framebuffers[image_num].clone(), false,
+                    //         vec![
+                    //             [0.0, 0.0, 1.0, 1.0].into(),
+                    //             1f32.into()
+                    //         ]
+                    //     ).unwrap()
+                    //     .draw_indexed(
+                    //         pipeline.clone(),
+                    //         &DynamicState::none(),
+                    //         vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
+                    //         index_buffer200.clone(), set.clone(), ()).unwrap()
+                    //     .end_render_pass().unwrap()
+                    //     .build().unwrap();
 
                 let future = previous_frame_end.take().unwrap()
                     .join(acquire_future)
