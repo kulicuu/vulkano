@@ -96,43 +96,7 @@ const INDICES_888: [u16; 30] = [
 ];
 
 
-struct RenderPayload {
-    vertices: Vec<Vertex>,
-    normals: Vec<Normal>,
-    indices: Vec<u16>
-}
 
-
-fn process_verts (mesh: &tobj::Mesh) -> RenderPayload {
-    // input will be a mesh positions array for a model mesh group.
-    // output will be everything
-    let mut vertices : Vec<Vertex> = Vec::new();
-    let mut normals : Vec<Normal> = Vec::new();
-    let mut indices : Vec<u16> = Vec::new();
-    let vertices_count = (&mesh.positions.iter().count() + 1) / 3;
-    for jdx in 0..vertices_count {
-        let vertex_cursor = &mesh.positions[(jdx * 3)..((jdx * 3) + 3)];
-        let normal_cursor = &mesh.normals[(jdx * 3)..((jdx * 3) + 3)];
-        vertices.push(Vertex { position: (vertex_cursor[0], vertex_cursor[1], vertex_cursor[2]) });
-        normals.push(Normal { normal: (normal_cursor[0], normal_cursor[1], normal_cursor[2])});
-    }
-    RenderPayload {
-        vertices: vertices,
-        normals: normals,
-        indices: indices
-    }
-}
-
-
-
-//
-// fn process_verts_002 (mesh: &tobj::Mesh) -> RenderPayload_002 {
-//
-//
-// }
-
-// 3072
-// 531
 
 fn main() {
     let required_extensions = vulkano_win::required_extensions();
@@ -180,38 +144,8 @@ fn main() {
     let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_000.obj"));
     let (models, materials) = lear.unwrap();
 
-    let mesh = models.iter().nth(10).unwrap();
-    println!("Mesh: {:?}", mesh.mesh.positions);
-
-    let vertices = mesh.mesh.positions.iter().cloned();
-    // let vertices = VERTICES_888.iter().cloned();
-    let vertex_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, vertices).unwrap();
-
-    // let normals = NORMALS_888.iter().cloned();
-    let normals = mesh.mesh.normals.iter().cloned();
-    let normals_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, normals).unwrap();
-
-    // let indices = INDICES_888.iter().cloned();
-    let indices = mesh.mesh.indices.iter().cloned();
-    let index_buffer = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices).unwrap();
 
 
-
-
-    let mesh200 = models.iter().nth(15).unwrap();
-    println!("Mesh: {:?}", mesh.mesh.positions);
-
-    let vertices200 = mesh200.mesh.positions.iter().cloned();
-    // let vertices = VERTICES_888.iter().cloned();
-    let vertex_buffer200 : std::sync::Arc<CpuAccessibleBuffer::<[f32]>> = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, vertices200).unwrap();
-
-    // let normals = NORMALS_888.iter().cloned();
-    let normals = mesh200.mesh.normals.iter().cloned();
-    let normals_buffer200 : std::sync::Arc<CpuAccessibleBuffer::<[f32]>>  = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, normals).unwrap();
-
-    // let indices = INDICES_888.iter().cloned();
-    let indices = mesh200.mesh.indices.iter().cloned();
-    let index_buffer200 : std::sync::Arc<CpuAccessibleBuffer::<[u32]>> = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices).unwrap();
 
 
 
@@ -346,32 +280,6 @@ fn main() {
 
 
 
-                //
-                // let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
-                //     .begin_render_pass(
-                //         framebuffers[image_num].clone(), false,
-                //         vec![
-                //             [0.0, 0.0, 1.0, 1.0].into(),
-                //             1f32.into()
-                //         ]
-                //     ).unwrap()
-                //     .draw_indexed(
-                //         pipeline.clone(),
-                //         &DynamicState::none(),
-                //         vec!(vertex_buffer.clone(), normals_buffer.clone()),
-                //         index_buffer.clone(), set.clone(), ()).unwrap()
-                //
-                //     .draw_indexed(
-                //         pipeline.clone(),
-                //         &DynamicState::none(),
-                //         vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
-                //         index_buffer200.clone(), set.clone(), ()).unwrap()
-                //
-                //
-                //     .end_render_pass().unwrap()
-                //     .build().unwrap();
-
-
 
 
 
@@ -446,61 +354,6 @@ fn main() {
 
 
 
-                // command_buffer = AutoCommandBufferBuilder::primary(device.clone(), queue.family()).unwrap()
-                //     .begin_render_pass(
-                //         framebuffers[image_num].clone(), false,
-                //         vec![
-                //             [0.0, 0.0, 1.0, 1.0].into(),
-                //             1f32.into()
-                //         ]
-                //     ).unwrap()
-                //     .draw_indexed(
-                //         pipeline.clone(),
-                //         &DynamicState::none(),
-                //         vec!(vertex_buffer.clone(), normals_buffer.clone()),
-                //         index_buffer.clone(), set.clone(), ()).unwrap()
-                //
-                //     .draw_indexed(
-                //         pipeline.clone(),
-                //         &DynamicState::none(),
-                //         vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
-                //         index_buffer200.clone(), set.clone(), ()).unwrap()
-                //
-                //
-                //     .end_render_pass().unwrap()
-                //     .build().unwrap();
-
-
-
-
-
-
-
-
-
-                // let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
-                //     .begin_render_pass(
-                //         framebuffers[image_num].clone(), false,
-                //         vec![
-                //             [0.0, 0.0, 1.0, 1.0].into(),
-                //             1f32.into()
-                //         ]
-                //     ).unwrap()
-                //     .draw_indexed(
-                //         pipeline.clone(),
-                //         &DynamicState::none(),
-                //         vec!(vertex_buffer.clone(), normals_buffer.clone()),
-                //         index_buffer.clone(), set.clone(), ()).unwrap()
-                //
-                //     .draw_indexed(
-                //         pipeline.clone(),
-                //         &DynamicState::none(),
-                //         vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
-                //         index_buffer200.clone(), set.clone(), ()).unwrap()
-                //
-                //
-                //     .end_render_pass().unwrap()
-                //     .build().unwrap();
 
 
                 let future = previous_frame_end.take().unwrap()
