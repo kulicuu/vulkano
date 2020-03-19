@@ -346,7 +346,37 @@ fn main() {
 
 
 
-                let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
+                //
+                // let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
+                //     .begin_render_pass(
+                //         framebuffers[image_num].clone(), false,
+                //         vec![
+                //             [0.0, 0.0, 1.0, 1.0].into(),
+                //             1f32.into()
+                //         ]
+                //     ).unwrap()
+                //     .draw_indexed(
+                //         pipeline.clone(),
+                //         &DynamicState::none(),
+                //         vec!(vertex_buffer.clone(), normals_buffer.clone()),
+                //         index_buffer.clone(), set.clone(), ()).unwrap()
+                //
+                //     .draw_indexed(
+                //         pipeline.clone(),
+                //         &DynamicState::none(),
+                //         vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
+                //         index_buffer200.clone(), set.clone(), ()).unwrap()
+                //
+                //
+                //     .end_render_pass().unwrap()
+                //     .build().unwrap();
+
+
+
+
+
+
+                let mut command_buffer = AutoCommandBufferBuilder::primary(device.clone(), queue.family()).unwrap()
                     .begin_render_pass(
                         framebuffers[image_num].clone(), false,
                         vec![
@@ -354,21 +384,123 @@ fn main() {
                             1f32.into()
                         ]
                     ).unwrap()
-                    .draw_indexed(
-                        pipeline.clone(),
-                        &DynamicState::none(),
-                        vec!(vertex_buffer.clone(), normals_buffer.clone()),
-                        index_buffer.clone(), set.clone(), ()).unwrap()
-
-                    .draw_indexed(
-                        pipeline.clone(),
-                        &DynamicState::none(),
-                        vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
-                        index_buffer200.clone(), set.clone(), ()).unwrap()
+                    // .draw_indexed(
+                    //     pipeline.clone(),
+                    //     &DynamicState::none(),
+                    //     vec!(vertex_buffer.clone(), normals_buffer.clone()),
+                    //     index_buffer.clone(), set.clone(), ()).unwrap()
+                    //
+                    // .draw_indexed(
+                    //     pipeline.clone(),
+                    //     &DynamicState::none(),
+                    //     vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
+                    //     index_buffer200.clone(), set.clone(), ()).unwrap()
 
 
                     .end_render_pass().unwrap()
                     .build().unwrap();
+
+
+
+
+
+
+
+
+                let mut l33 = |package: &Package| -> i32 {
+                    // println!("wallop");
+
+                    command_buffer = AutoCommandBufferBuilder::primary(device.clone(), queue.family()).unwrap()
+                        .begin_render_pass(
+                            framebuffers[image_num].clone(), false,
+                            vec![
+                                [0.0, 0.0, 1.0, 1.0].into(),
+                                1f32.into()
+                            ]
+                        ).unwrap()
+                        .draw_indexed(
+                            pipeline.clone(),
+                            &DynamicState::none(),
+                            vec!(package.vertex_buffer.clone(), package.normals_buffer.clone()),
+                            package.index_buffer.clone(), set.clone(), ()).unwrap()
+
+
+
+
+                        .end_render_pass().unwrap()
+                        .build().unwrap();
+
+
+                    1
+                };
+
+
+                for (idx, package) in mashes.iter().enumerate() {
+                    // println!("idx: {:?}", idx);
+                    l33(&package);
+                }
+
+                // let x33 = l33();
+
+
+
+
+
+                // command_buffer = AutoCommandBufferBuilder::primary(device.clone(), queue.family()).unwrap()
+                //     .begin_render_pass(
+                //         framebuffers[image_num].clone(), false,
+                //         vec![
+                //             [0.0, 0.0, 1.0, 1.0].into(),
+                //             1f32.into()
+                //         ]
+                //     ).unwrap()
+                //     .draw_indexed(
+                //         pipeline.clone(),
+                //         &DynamicState::none(),
+                //         vec!(vertex_buffer.clone(), normals_buffer.clone()),
+                //         index_buffer.clone(), set.clone(), ()).unwrap()
+                //
+                //     .draw_indexed(
+                //         pipeline.clone(),
+                //         &DynamicState::none(),
+                //         vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
+                //         index_buffer200.clone(), set.clone(), ()).unwrap()
+                //
+                //
+                //     .end_render_pass().unwrap()
+                //     .build().unwrap();
+
+
+
+
+
+
+
+
+
+                // let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
+                //     .begin_render_pass(
+                //         framebuffers[image_num].clone(), false,
+                //         vec![
+                //             [0.0, 0.0, 1.0, 1.0].into(),
+                //             1f32.into()
+                //         ]
+                //     ).unwrap()
+                //     .draw_indexed(
+                //         pipeline.clone(),
+                //         &DynamicState::none(),
+                //         vec!(vertex_buffer.clone(), normals_buffer.clone()),
+                //         index_buffer.clone(), set.clone(), ()).unwrap()
+                //
+                //     .draw_indexed(
+                //         pipeline.clone(),
+                //         &DynamicState::none(),
+                //         vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
+                //         index_buffer200.clone(), set.clone(), ()).unwrap()
+                //
+                //
+                //     .end_render_pass().unwrap()
+                //     .build().unwrap();
 
 
                 let future = previous_frame_end.take().unwrap()
