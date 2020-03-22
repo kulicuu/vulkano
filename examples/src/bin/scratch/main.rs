@@ -172,12 +172,6 @@ fn main() {
 
 
 
-    let arq = mashes.pop().unwrap();
-    let arq2 = mashes.pop().unwrap();
-    let arq3 = mashes.pop().unwrap();
-
-    println!("mashes {:?}", mashes.iter().count());
-
     let uniform_buffer = CpuBufferPool::<vs::ty::Data>::new(device.clone(), BufferUsage::all());
     let vs = vs::Shader::load(device.clone()).unwrap();
     let fs = fs::Shader::load(device.clone()).unwrap();
@@ -354,30 +348,6 @@ fn main() {
                 }
 
 
-
-
-
-                // let cb2 = cb1
-                // .draw_indexed(
-                //     pipeline.clone(),
-                //     &DynamicState::none(),
-                //     vec!(arq.vertex_buffer.clone(), arq.normals_buffer.clone()),
-                //     arq.index_buffer.clone(), set.clone(), ()).unwrap();
-                //
-                // let cb3 = cb2
-                // .draw_indexed(
-                //     pipeline.clone(),
-                //     &DynamicState::none(),
-                //     vec!(arq2.vertex_buffer.clone(), arq2.normals_buffer.clone()),
-                //     arq2.index_buffer.clone(), set.clone(), ()).unwrap();
-                //
-                //
-                // let cb4 = cb3
-                // .draw_indexed(
-                //     pipeline.clone(),
-                //     &DynamicState::none(),
-                //     vec!(arq3.vertex_buffer.clone(), arq3.normals_buffer.clone()),
-                //     arq3.index_buffer.clone(), set.clone(), ()).unwrap();
 
 
 
