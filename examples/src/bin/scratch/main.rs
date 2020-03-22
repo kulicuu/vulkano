@@ -96,6 +96,15 @@ const INDICES_888: [u16; 30] = [
 ];
 
 
+struct Package {
+    vertex_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
+    normals_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
+    index_buffer: std::sync::Arc<CpuAccessibleBuffer::<[u32]>>
+}
+
+
+
+
 
 
 fn main() {
@@ -140,24 +149,14 @@ fn main() {
     };
 
 
-
     let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_000.obj"));
     let (models, materials) = lear.unwrap();
 
 
 
 
-
-
-
-    struct Package {
-        vertex_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
-        normals_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
-        index_buffer: std::sync::Arc<CpuAccessibleBuffer::<[u32]>>
-    };
-
-
     let mut mashes : Vec<Package> = Vec::new();
+
 
 
 
@@ -173,9 +172,13 @@ fn main() {
 
 
 
+    let arq = mashes.pop().unwrap();
+    let arq2 = mashes.pop().unwrap();
+    let arq3 = mashes.pop().unwrap();
+
+    println!("mashes {:?}", mashes.iter().count());
 
     let uniform_buffer = CpuBufferPool::<vs::ty::Data>::new(device.clone(), BufferUsage::all());
-
     let vs = vs::Shader::load(device.clone()).unwrap();
     let fs = fs::Shader::load(device.clone()).unwrap();
 
@@ -204,11 +207,17 @@ fn main() {
     );
 
 
+// https://docs.rs/vulkano/0.16.0/vulkano/command_buffer/struct.StateCacher.html
+
     let (mut pipeline, mut framebuffers) = window_size_dependent_setup(device.clone(), &vs, &fs, &images, render_pass.clone());
     let mut recreate_swapchain = false;
 
     let mut previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<dyn GpuFuture>);
     let rotation_start = Instant::now();
+
+
+
+
 
 
     event_loop.run(move |event, _, control_flow| {
@@ -242,11 +251,9 @@ fn main() {
                     let rotation = elapsed.as_secs() as f64 + elapsed.subsec_nanos() as f64 / 1_000_000_000.0;
                     let rotation = Matrix3::from_angle_y(Rad(rotation as f32));
 
-                    // note: this teapot was meant for OpenGL where the origin is at the lower left
-                    //       instead the origin is at the upper left in Vulkan, so we reverse the Y axis
                     let aspect_ratio = dimensions[0] as f32 / dimensions[1] as f32;
                     let proj = cgmath::perspective(Rad(std::f32::consts::FRAC_PI_2), aspect_ratio, 0.01, 100.0);
-                    let view = Matrix4::look_at(Point3::new(0.2, 0.3, 1.0), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -1.0, 0.0));
+                    let view = Matrix4::look_at(Point3::new(1., 1., 1.0), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -1.0, 0.0));
                     let scale = Matrix4::from_scale(0.0021);
 
                     let uniform_data = vs::ty::Data {
@@ -279,34 +286,18 @@ fn main() {
 
 
 
-
-
-
-
-
-                let mut command_buffer = AutoCommandBufferBuilder::primary(device.clone(), queue.family()).unwrap()
-                    .begin_render_pass(
-                        framebuffers[image_num].clone(), false,
-                        vec![
-                            [0.0, 0.0, 1.0, 1.0].into(),
-                            1f32.into()
-                        ]
-                    ).unwrap()
-                    // .draw_indexed(
-                    //     pipeline.clone(),
-                    //     &DynamicState::none(),
-                    //     vec!(vertex_buffer.clone(), normals_buffer.clone()),
-                    //     index_buffer.clone(), set.clone(), ()).unwrap()
-                    //
-                    // .draw_indexed(
-                    //     pipeline.clone(),
-                    //     &DynamicState::none(),
-                    //     vec!(vertex_buffer200.clone(), normals_buffer200.clone()),
-                    //     index_buffer200.clone(), set.clone(), ()).unwrap()
-
-
-                    .end_render_pass().unwrap()
-                    .build().unwrap();
+                // let draw_indexed_over_coll(arq_in: Vec<Package>, cb_in: AutoCommandBufferBuilder) -> AutoCommandBufferBuilder {
+                //     let cb_out: AutoCommandBufferBuilder = cb_in;
+                //     for (index, package) in arq_in.iter().enumerate() {
+                //         cb_out = cb_out
+                //         .draw_indexed(
+                //             pipeline.clone(),
+                //             &DynamicState::none(),
+                //             vec!(package.vertex_buffer.clone(), package.normals_buffer.clone()),
+                //             package.index_buffer.clone(), set.clone(), ()).unwrap();
+                //     }
+                //
+                // }
 
 
 
@@ -315,40 +306,127 @@ fn main() {
 
 
 
-                let mut l33 = |package: &Package| -> i32 {
-                    // println!("wallop");
-
-                    command_buffer = AutoCommandBufferBuilder::primary(device.clone(), queue.family()).unwrap()
-                        .begin_render_pass(
-                            framebuffers[image_num].clone(), false,
-                            vec![
-                                [0.0, 0.0, 1.0, 1.0].into(),
-                                1f32.into()
-                            ]
-                        ).unwrap()
-                        .draw_indexed(
-                            pipeline.clone(),
-                            &DynamicState::none(),
-                            vec!(package.vertex_buffer.clone(), package.normals_buffer.clone()),
-                            package.index_buffer.clone(), set.clone(), ()).unwrap()
 
 
 
 
-                        .end_render_pass().unwrap()
-                        .build().unwrap();
 
 
-                    1
-                };
 
 
-                for (idx, package) in mashes.iter().enumerate() {
-                    // println!("idx: {:?}", idx);
-                    l33(&package);
+
+
+
+
+
+
+
+
+
+
+
+                // Re-insert the original teapot code here.  Will have to re-evaluate the approach
+                // ...it may not be possible or optimal to dynamically generate draw_indexed calls.
+                // So, we'll collect all above into one buffer.  Would that work with the indices though ?  Probably not.
+
+                // No so that won't work either.  So will need to research the command_buffer thing better, to see what Vulkano allows.
+
+
+
+                let mut cb1 = AutoCommandBufferBuilder::new(device.clone(), queue.family()).unwrap()
+                .begin_render_pass(
+                    framebuffers[image_num].clone(), false,
+                    vec![
+                        [0.0, 0.0, 1.0, 1.0].into(),
+                        1f32.into()
+                    ]
+                ).unwrap();
+
+
+
+                for (index, package) in mashes.iter().enumerate() {
+                    cb1 = cb1
+                    .draw_indexed(
+                        pipeline.clone(),
+                        &DynamicState::none(),
+                        vec!(package.vertex_buffer.clone(), package.normals_buffer.clone()),
+                        package.index_buffer.clone(), set.clone(), ()).unwrap();
                 }
 
-                // let x33 = l33();
+
+
+
+
+                // let cb2 = cb1
+                // .draw_indexed(
+                //     pipeline.clone(),
+                //     &DynamicState::none(),
+                //     vec!(arq.vertex_buffer.clone(), arq.normals_buffer.clone()),
+                //     arq.index_buffer.clone(), set.clone(), ()).unwrap();
+                //
+                // let cb3 = cb2
+                // .draw_indexed(
+                //     pipeline.clone(),
+                //     &DynamicState::none(),
+                //     vec!(arq2.vertex_buffer.clone(), arq2.normals_buffer.clone()),
+                //     arq2.index_buffer.clone(), set.clone(), ()).unwrap();
+                //
+                //
+                // let cb4 = cb3
+                // .draw_indexed(
+                //     pipeline.clone(),
+                //     &DynamicState::none(),
+                //     vec!(arq3.vertex_buffer.clone(), arq3.normals_buffer.clone()),
+                //     arq3.index_buffer.clone(), set.clone(), ()).unwrap();
+
+
+
+
+                let command_buffer = cb1.end_render_pass().unwrap()
+                .build().unwrap();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
