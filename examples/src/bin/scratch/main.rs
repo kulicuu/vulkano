@@ -192,7 +192,7 @@ fn main() {
 
 
 
-
+    let mut x77 : f64 = 1.0;
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -204,6 +204,36 @@ fn main() {
             },
             Event::RedrawEventsCleared => {
                 previous_frame_end.as_mut().unwrap().cleanup_finished();
+
+
+                let mut x_input: f64 = 0.0;
+                let mut y_input: f64 = 0.0;
+
+                if let Some(event) = manager.get_event(){
+                    match &event{
+                        RawEvent::KeyboardEvent(_,  KeyId::Escape, State::Pressed)
+                            => println!("aseunthaesunth"),
+                        RawEvent::JoystickAxisEvent(_, axe, foo)
+                            => {
+                                // println!("12312323 {:?} {:?}", axe, foo);
+                                match *axe {
+                                    Axis::X => {
+                                        x_input = *foo;
+                                        x77 = x77 + x_input;
+                                    },
+                                    Axis::Y => {
+                                        y_input = *foo;
+                                    },
+                                    _ => (),
+                                }
+                            },
+                        _ => (),
+
+                    }
+
+                    // println!("event1212312 {:?}", event);
+
+                }
 
                 if recreate_swapchain {
                     let dimensions: [u32; 2] = surface.window().inner_size().into();
@@ -222,7 +252,11 @@ fn main() {
 
                 let uniform_buffer_subbuffer = {
                     let elapsed = rotation_start.elapsed();
-                    let rotation = elapsed.as_secs() as f64 + elapsed.subsec_nanos() as f64 / 1_000_000_000.0;
+
+                    let x88 : f64 = elapsed.subsec_nanos() as f64;
+                    let x99 : f64 = elapsed.as_secs() as f64;
+
+                    let rotation = (x99 * x77) + ((x88 * x77) / 1_000_000_000.0);
                     let rotation = Matrix3::from_angle_y(Rad(rotation as f32));
 
                     let aspect_ratio = dimensions[0] as f32 / dimensions[1] as f32;
@@ -259,33 +293,7 @@ fn main() {
                 }
 
 
-                let x_input: f64;
-                let y_input: f64;
 
-                if let Some(event) = manager.get_event(){
-                    match &event{
-                        RawEvent::KeyboardEvent(_,  KeyId::Escape, State::Pressed)
-                            => println!("aseunthaesunth"),
-                        RawEvent::JoystickAxisEvent(_, axe, foo)
-                            => {
-                                println!("12312323 {:?} {:?}", axe, foo);
-                                match *axe {
-                                    Axis::X => {
-                                        x_input = *foo;
-                                    },
-                                    Axis::Y => {
-                                        y_input = *foo;
-                                    },
-                                    _ => (),
-                                }
-                            },
-                        _ => (),
-
-                    }
-
-                    println!("event1212312 {:?}", event);
-
-                }
 
 
                 let mut cb1 = AutoCommandBufferBuilder::new(device.clone(), queue.family()).unwrap()
