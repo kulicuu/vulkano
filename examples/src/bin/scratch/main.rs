@@ -1,6 +1,17 @@
 
 
 
+
+extern crate multiinput;
+
+use multiinput::*;
+
+
+
+
+
+
+
 use vulkano::buffer::cpu_pool::CpuBufferPool;
 use vulkano::buffer::{BufferUsage, CpuAccessibleBuffer, ImmutableBuffer};
 use vulkano::command_buffer::{AutoCommandBufferBuilder, DynamicState};
@@ -37,6 +48,9 @@ use std::iter;
 use std::time::Instant;
 
 
+
+
+
 #[derive(Default, Copy, Clone)]
 struct Vertex {
     position: (f32, f32, f32)
@@ -52,48 +66,6 @@ struct Normal {
 vulkano::impl_vertex!(Normal, normal);
 
 
-const VERTICES_888 : [Vertex; 10] = [
-    Vertex { position: (0.0, 0.0, 0.0) },   // dummy vector because in the original model indices
-                                            // start at 1
-    Vertex { position: (40.6266, 28.3457, -1.10804) },
-    Vertex { position: (40.0714, 30.4443, -1.10804) },
-    Vertex { position: (40.7155, 31.1438, -1.10804) },
-    Vertex { position: (42.0257, 30.4443, -1.10804) },
-    Vertex { position: (43.4692, 28.3457, -1.10804) },
-    Vertex { position: (37.5425, 28.3457, 14.5117) },
-    Vertex { position: (37.0303, 30.4443, 14.2938) },
-    Vertex { position: (37.6244, 31.1438, 14.5466) },
-    Vertex { position: (38.8331, 30.4443, 15.0609) }
-];
-
-
-const NORMALS_888 : [Normal; 10] = [
-    Normal { normal: (0.0, 0.0, 0.0) },     // dummy vector because in the original model indices
-                                            // start at 1
-    Normal { normal: (-0.966742, -0.255752, 0.0) },
-    Normal { normal: (-0.966824, 0.255443, 0.0) },
-    Normal { normal: (-0.092052, 0.995754, 0.0) },
-    Normal { normal: (0.68205, 0.731305, 0.0) },
-    Normal { normal: (0.870301, 0.492521, -0.0) },
-    Normal { normal: (-0.893014, -0.256345, -0.369882) },
-    Normal { normal: (-0.893437, 0.255997, -0.369102) },
-    Normal { normal: (-0.0838771, 0.995843, -0.0355068) },
-    Normal { normal: (0.629724, 0.73186, 0.260439) }
-];
-
-
-const INDICES_888: [u16; 30] = [
-    8, 7, 2,
-    2, 3, 8,
-    9, 8, 3,
-    3, 4, 9,
-    10, 9, 4,
-    4, 5, 10,
-    12, 11, 6,
-    6, 7, 12,
-    13, 12, 7,
-    7, 8, 13
-];
 
 
 struct Package {
@@ -108,6 +80,18 @@ struct Package {
 
 
 fn main() {
+
+
+
+
+
+    let mut manager = RawInputManager::new().unwrap();
+
+    manager.register_devices(DeviceType::Joysticks(XInputInclude::True));
+
+
+
+
     let required_extensions = vulkano_win::required_extensions();
 
     let instance = Instance::new(None, &required_extensions, None).unwrap();
@@ -149,15 +133,11 @@ fn main() {
     };
 
 
-    let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_000.obj"));
+    let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_300.obj"));
     let (models, materials) = lear.unwrap();
 
 
-
-
     let mut mashes : Vec<Package> = Vec::new();
-
-
 
 
     for (index, model) in models.iter().enumerate() {
@@ -279,52 +259,19 @@ fn main() {
                 }
 
 
+                let mut input: u32 = 10;
 
-                // let draw_indexed_over_coll(arq_in: Vec<Package>, cb_in: AutoCommandBufferBuilder) -> AutoCommandBufferBuilder {
-                //     let cb_out: AutoCommandBufferBuilder = cb_in;
-                //     for (index, package) in arq_in.iter().enumerate() {
-                //         cb_out = cb_out
-                //         .draw_indexed(
-                //             pipeline.clone(),
-                //             &DynamicState::none(),
-                //             vec!(package.vertex_buffer.clone(), package.normals_buffer.clone()),
-                //             package.index_buffer.clone(), set.clone(), ()).unwrap();
-                //     }
-                //
-                // }
+                if let Some(event) = manager.get_event(){
+                    // match event{
+                    //     RawEvent::KeyboardEvent(_,  KeyId::Escape, State::Pressed)
+                    //         // => println!("234324324 {:?}", event),
+                    //         => println!("aseunthaesunth"),
+                    //     _ => (),
+                    // }
 
+                    println!("event1212312 {:?}", event.0);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                // Re-insert the original teapot code here.  Will have to re-evaluate the approach
-                // ...it may not be possible or optimal to dynamically generate draw_indexed calls.
-                // So, we'll collect all above into one buffer.  Would that work with the indices though ?  Probably not.
-
-                // No so that won't work either.  So will need to research the command_buffer thing better, to see what Vulkano allows.
-
+                }
 
 
                 let mut cb1 = AutoCommandBufferBuilder::new(device.clone(), queue.family()).unwrap()
@@ -348,60 +295,8 @@ fn main() {
                 }
 
 
-
-
-
-
                 let command_buffer = cb1.end_render_pass().unwrap()
                 .build().unwrap();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
                 let future = previous_frame_end.take().unwrap()
