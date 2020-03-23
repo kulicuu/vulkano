@@ -1,4 +1,4 @@
-i# Scratch
+# Scratch
 _If you can't hack it, scratch at it._
 
 
