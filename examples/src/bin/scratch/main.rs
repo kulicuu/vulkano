@@ -262,14 +262,17 @@ fn main() {
                 let mut input: u32 = 10;
 
                 if let Some(event) = manager.get_event(){
-                    // match event{
-                    //     RawEvent::KeyboardEvent(_,  KeyId::Escape, State::Pressed)
-                    //         // => println!("234324324 {:?}", event),
-                    //         => println!("aseunthaesunth"),
-                    //     _ => (),
-                    // }
+                    match &event{
+                        RawEvent::KeyboardEvent(_,  KeyId::Escape, State::Pressed)
+                            // => println!("234324324 {:?}", event),
+                            => println!("aseunthaesunth"),
+                        RawEvent::JoystickAxisEvent(_, axe, foo)
+                            => println!("12312323"),
+                        _ => (),
 
-                    println!("event1212312 {:?}", event.0);
+                    }
+
+                    println!("event1212312 {:?}", event);
 
                 }
 
