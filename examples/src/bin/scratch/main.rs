@@ -44,6 +44,7 @@ use tobj;
 
 use cgmath::{Matrix3, Matrix4, Point3, Vector3, Rad};
 use std::iter;
+use std::fs::File;
 
 use std::time::Instant;
 
@@ -134,7 +135,30 @@ fn main() {
     };
 
 
+
+    let mut terrain_f = File::open("./examples/src/bin/scratch/terrain_mesh_003.txt").unwrap();
+    let mut terrain_buffer = String::new();
+
+    terrain_f.read_to_string(&mut terrain_buffer);
+
+
+    let x99 = terrain_buffer.split("Vertices/Positions:Start").collect();
+
+    // let x33 = terrain_buffer.nth(0);
+
+    // println!("x33: {:?}", x33);
+
+
+
+
+
+
+
+
     let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_300.obj"));
+
+
+
     let (models, materials) = lear.unwrap();
 
 
