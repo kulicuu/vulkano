@@ -8,7 +8,7 @@ use multiinput::*;
 
 
 
-
+extern crate srtm;
 
 
 
@@ -80,6 +80,7 @@ struct Package {
 
 
 fn main() {
+
 
 
 
@@ -212,7 +213,7 @@ fn main() {
                 if let Some(event) = manager.get_event(){
                     match &event{
                         RawEvent::KeyboardEvent(_,  KeyId::Escape, State::Pressed)
-                            => println!("aseunthaesunth"),
+                            => println!("keyboard event"),
                         RawEvent::JoystickAxisEvent(_, axe, foo)
                             => {
                                 // println!("12312323 {:?} {:?}", axe, foo);
@@ -321,11 +322,71 @@ fn main() {
                 .build().unwrap();
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 let future = previous_frame_end.take().unwrap()
                     .join(acquire_future)
                     .then_execute(queue.clone(), command_buffer).unwrap()
                     .then_swapchain_present(queue.clone(), swapchain.clone(), image_num)
                     .then_signal_fence_and_flush();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                 match future {
@@ -349,6 +410,61 @@ fn main() {
     });
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
