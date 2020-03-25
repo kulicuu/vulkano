@@ -19,10 +19,10 @@ use cgmath::{Matrix3, Matrix4, Point3, Vector3, Rad};
 fn main() {
     let tile = srtm::Tile::from_file("./examples/src/bin/scratch/N57E016.hgt").unwrap();
     // let bounds = tile.extent() - 3;
-    let bounds = 600;
-    let mut vertex_str = String::from("Vertices/Positions:Start");
-    let mut idx_str = String::from("\nIndices:Start\n");
-    let mut normals_str = String::from("\nNormals:Start");
+    let bounds = 1000;
+    let mut vertex_str = String::from("Vertices:");
+    let mut idx_str = String::from("\nIndices:\n");
+    let mut normals_str = String::from("\nNormals:");
     let mut idx = 0;
 
 
@@ -43,7 +43,7 @@ fn main() {
                 neighbor = Vector3 { x: f64::from(idx), y: f64::from(jdx + bounds), z: f64::from(neighbor_point) };
             }
 
-            let pre_normal = vertex.cross(neighbor);
+            let pre_normal = neighbor.cross(vertex);
             let magnitude = ((pre_normal.x * pre_normal.x) + (pre_normal.y * pre_normal.y) + (pre_normal.z * pre_normal.z)).sqrt();
             let normal = Vector3 {x: pre_normal.x / magnitude, y: pre_normal.y / magnitude, z: pre_normal.z / magnitude };
             let mut normal_cursor = String::from("\n");
@@ -89,12 +89,12 @@ fn main() {
         kdx += 1;
     }
 
-    vertex_str.insert_str(vertex_str.len(), "\nVertices_End");
+    vertex_str.insert_str(vertex_str.len(), "\nVerticesEnd");
     let mut mesh_str = String::new();
     mesh_str.insert_str(0, &vertex_str);
     mesh_str.insert_str(mesh_str.len(), &idx_str);
-    mesh_str.insert_str(mesh_str.len(), "IndicesEnd\n");
+    mesh_str.insert_str(mesh_str.len(), "IndicesEnd");
     mesh_str.insert_str(mesh_str.len(), &normals_str);
-    mesh_str.insert_str(mesh_str.len(), "NormalsEnd\n");
-    fs::write("./examples/src/bin/triangle_list/mesh.txt", mesh_str);
+    mesh_str.insert_str(mesh_str.len(), "\nNormalsEnd");
+    fs::write("./examples/src/bin/triangle_list/terrain_mesh_003.txt", mesh_str);
 }

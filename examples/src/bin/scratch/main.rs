@@ -45,12 +45,20 @@ use tobj;
 use cgmath::{Matrix3, Matrix4, Point3, Vector3, Rad};
 use std::iter;
 use std::fs::File;
+use std::io::prelude::*;
 
 use std::time::Instant;
 
 
 
+use std::str::FromStr;
 
+
+
+enum FloatDataKind {
+    Vert,
+    Norm,
+}
 
 #[derive(Default, Copy, Clone)]
 struct Vertex {
@@ -67,8 +75,6 @@ struct Normal {
 vulkano::impl_vertex!(Normal, normal);
 
 
-
-
 struct Package {
     vertex_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
     normals_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
@@ -78,51 +84,128 @@ struct Package {
 
 
 
+// This function takes a string which we hope has three floats in there separated by spaces.
+// We want to return a Some(Vec<f64>) or None.
+fn find_three_floats(input : &str) -> Option<Vec<f64>> {
+
+    let x300 = String::from(input);
+    let x301 : Vec<&str> = x300.split(" ").collect();
+
+
+    if x301.len() == 3 {
+        let x302 = f64::from_str(x301[0]);
+        let x303 = f64::from_str(x301[1]);
+        let x304 = f64::from_str(x301[2]);
+        // println!("x302 {:?}", x302);
+
+        if (x302.is_ok() == true) && (x304.is_ok() == true) && (x304.is_ok() == true)  {
+            // println!("The values: {:?} {:?} {:?}", x302.unwrap(), x303.unwrap(), x304.unwrap());
+            return Some(vec!(x302.unwrap(), x303.unwrap(), x304.unwrap()));
+        }
+        else {
+            return None
+        }
+    } else {
+        return None
+    }
+}
+
+
+
+fn process_str_ints(input : &str) -> Vec<u32> {
+
+    let start = String::from(input);
+
+    let mut lines = start.lines();
+    let mut condition = true;
+
+    let mut ret_vec : Vec<u32> = Vec::new();
+
+    while condition == true {
+        let cursor = lines.next();
+
+
+        if cursor == None {
+            condition = false;
+        } else {
+            let x300 = u32::from_str(cursor.unwrap());
+            if x300.is_ok() == true {
+                ret_vec.push(x300.unwrap());
+            } else {
+                println!("error on index parse with");
+            }
+        }
+    }
+    ret_vec
+}
+
+
+
+fn process_str_floats(input: &str) -> Vec<Vec<f64>> {
+
+
+    let start = String::from(input);
+
+    let mut lines = start.lines();
+    let mut condition = true;
+
+    let mut ret_vec : Vec<Vec<f64>> = Vec::new();
+
+    while condition == true {
+        let cursor = lines.next();
+
+        if cursor == None {
+            condition = false;
+        } else {
+            // println!("The line: {:?}", cursor.unwrap());
+            let x200 = find_three_floats(&cursor.unwrap());
+            if x200 != None {
+                ret_vec.push(x200.unwrap());
+            }
+        }
+
+    }
+    ret_vec
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 fn main() {
 
-
-
-
-
-
     let mut manager = RawInputManager::new().unwrap();
-
     manager.register_devices(DeviceType::Joysticks(XInputInclude::True));
-
-
-
-
     let required_extensions = vulkano_win::required_extensions();
-
     let instance = Instance::new(None, &required_extensions, None).unwrap();
-
     let physical = PhysicalDevice::enumerate(&instance).next().unwrap();
-
     println!("Using device: {} (type: {:?})", physical.name(), physical.ty());
-
     let event_loop = EventLoop::new();
     let surface = WindowBuilder::new().build_vk_surface(&event_loop, instance.clone()).unwrap();
-
     let dimensions: [u32; 2] = surface.window().inner_size().into();
-
     let queue_family = physical.queue_families().find(|&q|
         q.supports_graphics() && surface.is_supported(q).unwrap_or(false)
     ).unwrap();
-
     let device_ext = DeviceExtensions { khr_swapchain: true, .. DeviceExtensions::none()};
-
-
     // We can see in the triangle example the comment which explains the 0.5 -- it's a priority score for the queue.
     let (device, mut queues) = Device::new(
         physical, physical.supported_features(), &device_ext, [(queue_family, 0.5)].iter().cloned()
     ).unwrap();
-
-
     let queue = queues.next().unwrap();
-
-
     let (mut swapchain, images) = {
         let caps = surface.capabilities(physical).unwrap();
         let usage = caps.supported_usage_flags;
@@ -134,24 +217,61 @@ fn main() {
             FullscreenExclusive::Default, true, ColorSpace::SrgbNonLinear).unwrap()
     };
 
-
-
-    let mut terrain_f = File::open("./examples/src/bin/scratch/terrain_mesh_003.txt").unwrap();
+    let mut terrain_f = std::fs::File::open("./examples/src/bin/scratch/terrain_mesh_003.txt").unwrap();
     let mut terrain_buffer = String::new();
 
-    terrain_f.read_to_string(&mut terrain_buffer);
+    terrain_f.read_to_string(&mut terrain_buffer).unwrap();
+    let x99 : Vec<&str> = terrain_buffer.split("Vertices:").collect();
+
+    let x100 = String::from(x99[1]);
+
+    let x101 : Vec<&str> = x100.split("Indices:").collect();
+
+    let x102 = String::from(x101[0]);  // This should just mostly be vertices with maybe a blank line and the title line "Vertices:"
+    let x103 = String::from(x101[1]); // This should have indices and normals
+
+    let x104 : Vec<&str> = x103.split("Normals:").collect();
+
+    let x160 = String::from(x104[0]); // This should be indices
+    let x105 = String::from(x104[1]); // This should be normals
 
 
-    let x99 = terrain_buffer.split("Vertices/Positions:Start").collect();
 
-    // let x33 = terrain_buffer.nth(0);
+    let x106 = process_str_floats(&x102); // This should be a vector that we can turn into a positions buffer vertex_buffer
 
-    // println!("x33: {:?}", x33);
+    // println!("x106: {:?}", x106);
+
+    let mut x200 : Vec<Vertex> = Vec::new();
+
+    for (idx, item) in x106.iter().enumerate() {
+        // println!("item {:?} idx {:?}", item, idx);
+        x200.push( Vertex { position: (item[0] as f32, item[1] as f32, item[2] as f32)} );
+    }
+
+
+
+    let vertex_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x200.iter().cloned()).unwrap();
 
 
 
 
 
+
+    let x107 = process_str_floats(&x105);
+
+
+    let mut x300 : Vec<Normal> = Vec::new();
+    for (idx, item) in x107.iter().enumerate() {
+        x300.push( Normal { normal: (item[0] as f32, item[1] as f32, item[2] as f32)} );
+    }
+
+
+    let normals_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x300.iter().cloned()).unwrap();
+
+
+    let x161 = process_str_ints(&x160);
+
+    let index_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x161.iter().cloned()).unwrap();
 
 
 
@@ -330,6 +450,13 @@ fn main() {
                     ]
                 ).unwrap();
 
+
+                cb1 = cb1
+                .draw_indexed(
+                    pipeline.clone(),
+                    &DynamicState::none(),
+                    vec!(vertex_buffer_terrain.clone(), normals_buffer_terrain.clone()),
+                    index_buffer_terrain.clone(), set.clone(), ()).unwrap();
 
 
                 for (index, package) in mashes.iter().enumerate() {
