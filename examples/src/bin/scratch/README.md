@@ -6,9 +6,10 @@ _If you can't hack it, scratch at it._
 
 This is some prototyping in order to eventually build world class physics-based, graphics-intensive simulations with Rust and Vulkan.  I've started with the Teapot example here in the Vulkano examples, and I'll be making some other sibling projects here to submit pull request over in order to contribute to Vulkano.
 
-## The Story Thus Far
 
-### Goals, Milestones:
+## Project Goals:
+
+### Near-Term:
 
 1.  The first step starting from the Teapot example was to replace the teapot with an object of our choice, in this case a small civil jet.  **Done**.
 
@@ -16,7 +17,7 @@ This is some prototyping in order to eventually build world class physics-based,
 
 3.  The third step is to read in a terrain height file and tessellate out some decent terrain.  **In progress**...
 
-4.  Implementing a super-naive flight model, and chase-plane viewing the model across the sky.  Terrain collisions, etc.  Improve ambient lighting a bit for a tiny semblance of sky.  Some very basic, passable graphics and realism features.  Very basic.
+4.  Implementing a super-naive flight model, and chase-plane viewing the model across the sky.  Terrain collisions, etc.  Improve ambient lighting a bit for a tiny semblance of sky.  Some very basic, passable graphics and realism features.  Very basic.  **future**
 
 With 1-4 done I would consider this project stage done, where the goal was to demonstrate basic physical system graphical output simulator features: the representation of a physical world and some mechanical system, with expected realism.  
 
@@ -29,7 +30,17 @@ The goals for the next steps might be:
 - or the physics side, with ray-tracing algorithm and spherical harmonics and associated physics-based rendering techniques.
 
 
-## Medium Term Goals
+### Near-Term Ancillary:
+
+1.  Use the run-time shader example to enable a studio environment where shaders are reloaded for a scene on file-watch.  This will radically speed up shader development and overall application development.  **future**
+
+2.  Refactor (clean up naming in particular) and spin out code to modules, April 2020 episode.  **future**
+
+
+
+
+
+## Memium-Term:
 So beyond those 4 near-term goals.
 I'm looking to:
 
@@ -41,7 +52,7 @@ I'm looking to:
 
 
 
-## Long Term Goals:
+## Long-Term:
 
 Basically it's a game and simulation engine.  I'd like to work on that as a project for the rest of my career, it's so valuable and so interesting.  This kind of software can be leveraged for games or it can be leveraged for real critical systems validation, all that entails and implies...
 

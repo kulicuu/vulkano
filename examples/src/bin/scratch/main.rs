@@ -10,8 +10,6 @@ use multiinput::*;
 
 extern crate srtm;
 
-
-
 use vulkano::buffer::cpu_pool::CpuBufferPool;
 use vulkano::buffer::{BufferUsage, CpuAccessibleBuffer, ImmutableBuffer};
 use vulkano::command_buffer::{AutoCommandBufferBuilder, DynamicState};
@@ -49,10 +47,7 @@ use std::io::prelude::*;
 
 use std::time::Instant;
 
-
-
 use std::str::FromStr;
-
 
 #[derive(Default, Copy, Clone)]
 struct Vertex {
@@ -133,8 +128,9 @@ fn process_str_ints(input : &str) -> Vec<u32> {
 }
 
 
-fn process_str_floats(input: &str) -> Vec<Vec<f64>> {
 
+
+fn process_str_floats(input: &str) -> Vec<Vec<f64>> {
 
     let start = String::from(input);
 
