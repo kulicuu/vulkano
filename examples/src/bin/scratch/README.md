@@ -32,9 +32,11 @@ The goals for the next steps might be:
 
 ### Near-Term Ancillary:
 
-1.  Use the run-time shader example to enable a studio environment where shaders are reloaded for a scene on file-watch.  This will radically speed up shader development and overall application development.  **future**
+1. Live shader reload on file watch with immediate screen render effect.  **in progress (in Studio example)**
 
-2.  Refactor (clean up naming in particular) and spin out code to modules, April 2020 episode.  **future**
+2. Interface to adjust the application defined transformations (matrices generally, the ones that live in application/Rust logic rather than GPU/shader logic) live during runtime.  This is pretty much the same as input for a game, except we'll be using it in a studio way to enable the developer to tranfer through various relevant morphisms.  **in progress (in Studio example)**
+
+3.  Refactor (clean up naming in particular) and spin out code to modules, April 2020 episode.  **in progress**
 
 
 
@@ -49,6 +51,18 @@ I'm looking to:
 - I want the most advanced physics modeling _I_ can develop, myself.  I'm starting with books like Gerald Sussman's "Structure and Interpretation of Classical Mechanics", and I'm thinking about different implementations of physics modeling, some of which work with classical mechanics and Euclidean space, whereas some implementations may work with relativity and deal with manifold effects even at local levels.  Will see, this is a big project and not everything can be done in medium term.
 
 - Working with Vulkan and Rust, the sky is kind of the limit when optimizing the graphics representation.  I don't like any of the big game engines, I think their graphics look cheezy.  Since this is just my beginner project I'm not expecting to show them up or anything, but I'm happy to be working at the low-level, to have to learn all the basic underlying techniques involved in mapping information through a matrix of colored light bulbs.  I guess medium-term in this flight-sim project I just want the graphics to be interesting and physics-based mostly, and to give me an opportunity to learn more.
+
+### Medium-Term Ancillary
+
+1. Implement ray-tracing over the Vulkan extension.
+
+    ##### Reference material:
+
+    https://devblogs.nvidia.com/vulkan-raytracing/ (vulkan implementation specific)
+
+    https://devblogs.nvidia.com/practical-real-time-ray-tracing-rtx/ (more background than implementation specific)
+    
+    https://github.com/maierfelix/tiny-rtx  (note to self: this is a good one for learning some new and exotic node.js stuff)
 
 
 
