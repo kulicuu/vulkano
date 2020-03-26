@@ -54,12 +54,6 @@ use std::time::Instant;
 use std::str::FromStr;
 
 
-
-enum FloatDataKind {
-    Vert,
-    Norm,
-}
-
 #[derive(Default, Copy, Clone)]
 struct Vertex {
     position: (f32, f32, f32)
@@ -111,7 +105,6 @@ fn find_three_floats(input : &str) -> Option<Vec<f64>> {
 }
 
 
-
 fn process_str_ints(input : &str) -> Vec<u32> {
 
     let start = String::from(input);
@@ -138,7 +131,6 @@ fn process_str_ints(input : &str) -> Vec<u32> {
     }
     ret_vec
 }
-
 
 
 fn process_str_floats(input: &str) -> Vec<Vec<f64>> {
@@ -168,24 +160,6 @@ fn process_str_floats(input: &str) -> Vec<Vec<f64>> {
     ret_vec
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 fn main() {
 
     let mut manager = RawInputManager::new().unwrap();
@@ -212,13 +186,19 @@ fn main() {
         let format = caps.supported_formats[0].0;
         let alpha = caps.supported_composite_alpha.iter().next().unwrap();
 
+
         Swapchain::new(device.clone(), surface.clone(), caps.min_image_count, format, dimensions, 1,
             usage, &queue, SurfaceTransform::Identity, alpha, PresentMode::Fifo,
             FullscreenExclusive::Default, true, ColorSpace::SrgbNonLinear).unwrap()
     };
 
+
+
+
     let mut terrain_f = std::fs::File::open("./examples/src/bin/scratch/terrain_mesh_003.txt").unwrap();
     let mut terrain_buffer = String::new();
+
+
 
     terrain_f.read_to_string(&mut terrain_buffer).unwrap();
     let x99 : Vec<&str> = terrain_buffer.split("Vertices:").collect();
@@ -234,8 +214,6 @@ fn main() {
 
     let x160 = String::from(x104[0]); // This should be indices
     let x105 = String::from(x104[1]); // This should be normals
-
-
 
     let x106 = process_str_floats(&x102); // This should be a vector that we can turn into a positions buffer vertex_buffer
 
@@ -325,9 +303,6 @@ fn main() {
 
     let subpass = Subpass::from(render_pass.clone(), 0).unwrap();
 
-
-
-
 // https://docs.rs/vulkano/0.16.0/vulkano/command_buffer/struct.StateCacher.html
 
     let (mut pipeline, mut framebuffers, mut pipelineTerrain) = window_size_dependent_setup(device.clone(), &vs, &vsTerrain, &fs, &images, render_pass.clone());
@@ -378,7 +353,6 @@ fn main() {
 
                     }
 
-                    // println!("event1212312 {:?}", event);
 
                 }
 
@@ -410,7 +384,7 @@ fn main() {
                     let aspect_ratio = dimensions[0] as f32 / dimensions[1] as f32;
                     let proj = cgmath::perspective(Rad(std::f32::consts::FRAC_PI_2), aspect_ratio, 0.01, 100.0);
                     let view = Matrix4::look_at(Point3::new(1., 1., 1.0), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, -1.0, 0.0));
-                    let scale = Matrix4::from_scale(0.0021);
+                    let scale = Matrix4::from_scale(0.0011);
 
                     let uniform_data = vs::ty::Data {
                         world: Matrix4::from(rotation).into(),
@@ -427,6 +401,8 @@ fn main() {
                     .build().unwrap()
                 );
 
+
+
                 let (image_num, suboptimal, acquire_future) = match swapchain::acquire_next_image(swapchain.clone(), None) {
                     Ok(r) => r,
                     Err(AcquireError::OutOfDate) => {
@@ -439,8 +415,6 @@ fn main() {
                 if suboptimal {
                     recreate_swapchain = true;
                 }
-
-
 
 
                 let mut cb20 = AutoCommandBufferBuilder::secondary_graphics(device.clone(), queue.family(), subpass.clone()).unwrap();
@@ -477,43 +451,13 @@ fn main() {
                 }
 
 
-                // cb1 = cb1
-                // .draw_indexed(
-                //     pipelineTerrain.clone(),
-                //     &DynamicState::none(),
-                //     vec!(vertex_buffer_terrain.clone(), normals_buffer_terrain.clone()),
-                //     index_buffer_terrain.clone(), set.clone(), ()).unwrap();
-
-                unsafe {cb1 = cb1.execute_commands(command_buffer_terrain).unwrap();}
+                unsafe {
+                    cb1 = cb1.execute_commands(command_buffer_terrain).unwrap();
+                }
 
 
                 let command_buffer = cb1.end_render_pass().unwrap()
                 .build().unwrap();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -526,24 +470,6 @@ fn main() {
                     .then_execute(queue.clone(), command_buffer).unwrap()
                     .then_swapchain_present(queue.clone(), swapchain.clone(), image_num)
                     .then_signal_fence_and_flush();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -585,26 +511,6 @@ fn main() {
     });
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
