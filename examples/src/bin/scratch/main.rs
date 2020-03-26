@@ -549,6 +549,10 @@ fn main() {
 
 
 
+
+
+
+
 /// This method is called once during initialization, then again whenever the window is resized
 fn window_size_dependent_setup(
     device: Arc<Device>,
@@ -571,10 +575,6 @@ fn window_size_dependent_setup(
         ) as Arc<dyn FramebufferAbstract + Send + Sync>
     }).collect::<Vec<_>>();
 
-    // In the triangle example we use a dynamic viewport, as its a simple example.
-    // However in the teapot example, we recreate the pipelines with a hardcoded viewport instead.
-    // This allows the driver to optimize things, at the cost of slower window resizes.
-    // https://computergraphics.stackexchange.com/questions/5742/vulkan-best-way-of-updating-pipeline-viewport
     let pipeline = Arc::new(GraphicsPipeline::start()
         .vertex_input(TwoBuffersDefinition::<Vertex, Normal>::new())
         .vertex_shader(vs.main_entry_point(), ())
@@ -590,6 +590,9 @@ fn window_size_dependent_setup(
         .render_pass(Subpass::from(render_pass.clone(), 0).unwrap())
         .build(device.clone())
         .unwrap());
+
+
+
 
     let pipelineTerrain = Arc::new(GraphicsPipeline::start()
         .vertex_input(TwoBuffersDefinition::<Vertex, Normal>::new())
@@ -609,8 +612,6 @@ fn window_size_dependent_setup(
 
     (pipeline, framebuffers, pipelineTerrain)
 }
-
-
 
 
 
