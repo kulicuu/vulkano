@@ -248,13 +248,7 @@ fn main() {
         x200.push( Vertex { position: (item[0] as f32, item[1] as f32, item[2] as f32)} );
     }
 
-
-
     let vertex_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x200.iter().cloned()).unwrap();
-
-
-
-
 
 
     let x107 = process_str_floats(&x105);
@@ -303,28 +297,35 @@ fn main() {
     let fs = fs::Shader::load(device.clone()).unwrap();
 
 
-    let render_pass = Arc::new(
-        vulkano::single_pass_renderpass!(device.clone(),
-            attachments: {
-                color: {
-                    load: Clear,
-                    store: Store,
-                    format: swapchain.format(),
-                    samples: 1,
-                },
-                depth: {
-                    load: Clear,
-                    store: DontCare,
-                    format: Format::D16Unorm,
-                    samples: 1,
-                }
+    let x700 = vulkano::single_pass_renderpass!(device.clone(),
+        attachments: {
+            color: {
+                load: Clear,
+                store: Store,
+                format: swapchain.format(),
+                samples: 1,
             },
-            pass: {
-                color: [color],
-                depth_stencil: {depth}
+            depth: {
+                load: Clear,
+                store: DontCare,
+                format: Format::D16Unorm,
+                samples: 1,
             }
-        ).unwrap()
-    );
+        },
+        pass: {
+            color: [color],
+            depth_stencil: {depth}
+        }
+    ).unwrap();
+
+
+
+    let render_pass = Arc::new(x700);
+
+
+    let subpass = Subpass::from(render_pass.clone(), 0).unwrap();
+
+
 
 
 // https://docs.rs/vulkano/0.16.0/vulkano/command_buffer/struct.StateCacher.html
@@ -442,6 +443,18 @@ fn main() {
 
 
 
+                let mut cb20 = AutoCommandBufferBuilder::secondary_graphics(device.clone(), queue.family(), subpass.clone()).unwrap();
+
+                cb20 = cb20
+                .draw_indexed(
+                    pipelineTerrain.clone(),
+                    &DynamicState::none(),
+                    vec!(vertex_buffer_terrain.clone(), normals_buffer_terrain.clone()),
+                    index_buffer_terrain.clone(), set.clone(), ()).unwrap();
+
+                let command_buffer_terrain = cb20.build().unwrap();
+
+
 
                 let mut cb1 = AutoCommandBufferBuilder::new(device.clone(), queue.family()).unwrap()
                 .begin_render_pass(
@@ -452,13 +465,6 @@ fn main() {
                     ]
                 ).unwrap();
 
-
-                cb1 = cb1
-                .draw_indexed(
-                    pipeline.clone(),
-                    &DynamicState::none(),
-                    vec!(vertex_buffer_terrain.clone(), normals_buffer_terrain.clone()),
-                    index_buffer_terrain.clone(), set.clone(), ()).unwrap();
 
 
                 for (index, package) in mashes.iter().enumerate() {
@@ -471,8 +477,24 @@ fn main() {
                 }
 
 
+                // cb1 = cb1
+                // .draw_indexed(
+                //     pipelineTerrain.clone(),
+                //     &DynamicState::none(),
+                //     vec!(vertex_buffer_terrain.clone(), normals_buffer_terrain.clone()),
+                //     index_buffer_terrain.clone(), set.clone(), ()).unwrap();
+
+                unsafe {cb1 = cb1.execute_commands(command_buffer_terrain).unwrap();}
+
+
                 let command_buffer = cb1.end_render_pass().unwrap()
                 .build().unwrap();
+
+
+
+
+
+
 
 
 
