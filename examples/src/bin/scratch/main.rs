@@ -299,6 +299,7 @@ fn main() {
 
     let uniform_buffer = CpuBufferPool::<vs::ty::Data>::new(device.clone(), BufferUsage::all());
     let vs = vs::Shader::load(device.clone()).unwrap();
+    let vsTerrain = vsTerrain::Shader::load(device.clone()).unwrap();
     let fs = fs::Shader::load(device.clone()).unwrap();
 
 
@@ -328,7 +329,7 @@ fn main() {
 
 // https://docs.rs/vulkano/0.16.0/vulkano/command_buffer/struct.StateCacher.html
 
-    let (mut pipeline, mut framebuffers) = window_size_dependent_setup(device.clone(), &vs, &fs, &images, render_pass.clone());
+    let (mut pipeline, mut framebuffers, mut pipelineTerrain) = window_size_dependent_setup(device.clone(), &vs, &vsTerrain, &fs, &images, render_pass.clone());
     let mut recreate_swapchain = false;
 
     let mut previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<dyn GpuFuture>);
@@ -389,8 +390,9 @@ fn main() {
                     };
 
                     swapchain = new_swapchain;
-                    let (new_pipeline, new_framebuffers) = window_size_dependent_setup(device.clone(), &vs, &fs, &new_images, render_pass.clone());
+                    let (new_pipeline, new_framebuffers, new_pipelineTerrain) = window_size_dependent_setup(device.clone(), &vs, &vsTerrain, &fs, &new_images, render_pass.clone());
                     pipeline = new_pipeline;
+                    pipelineTerrain = new_pipelineTerrain;
                     framebuffers = new_framebuffers;
                     recreate_swapchain = false;
                 }
@@ -623,10 +625,11 @@ fn main() {
 fn window_size_dependent_setup(
     device: Arc<Device>,
     vs: &vs::Shader,
+    vsTerrain: &vsTerrain::Shader,
     fs: &fs::Shader,
     images: &[Arc<SwapchainImage<Window>>],
     render_pass: Arc<dyn RenderPassAbstract + Send + Sync>,
-) -> (Arc<dyn GraphicsPipelineAbstract + Send + Sync>, Vec<Arc<dyn FramebufferAbstract + Send + Sync>> ) {
+) -> (Arc<dyn GraphicsPipelineAbstract + Send + Sync>, Vec<Arc<dyn FramebufferAbstract + Send + Sync>>, Arc<dyn GraphicsPipelineAbstract + Send + Sync>) {
     let dimensions = images[0].dimensions();
 
     let depth_buffer = AttachmentImage::transient(device.clone(), dimensions, Format::D16Unorm).unwrap();
@@ -660,22 +663,48 @@ fn window_size_dependent_setup(
         .build(device.clone())
         .unwrap());
 
-    (pipeline, framebuffers)
+    let pipelineTerrain = Arc::new(GraphicsPipeline::start()
+        .vertex_input(TwoBuffersDefinition::<Vertex, Normal>::new())
+        .vertex_shader(vsTerrain.main_entry_point(), ())
+        .triangle_list()
+        .viewports_dynamic_scissors_irrelevant(1)
+        .viewports(iter::once(Viewport {
+            origin: [0.0, 0.0],
+            dimensions: [dimensions[0] as f32, dimensions[1] as f32],
+            depth_range: 0.0 .. 1.0,
+        }))
+        .fragment_shader(fs.main_entry_point(), ())
+        .depth_stencil_simple_depth()
+        .render_pass(Subpass::from(render_pass.clone(), 0).unwrap())
+        .build(device.clone())
+        .unwrap());
+
+    (pipeline, framebuffers, pipelineTerrain)
 }
 
 
 
 
+
+
+mod vsTerrain {
+    vulkano_shaders::shader!{
+        ty: "vertex",
+        path: "src/bin/scratch/vertTerrain.hlsl"
+    }
+}
+
+
 mod vs {
     vulkano_shaders::shader!{
         ty: "vertex",
-        path: "src/bin/scratch/vert.glsl"
+        path: "src/bin/scratch/vert.hlsl"
     }
 }
 
 mod fs {
     vulkano_shaders::shader!{
         ty: "fragment",
-        path: "src/bin/scratch/frag.glsl"
+        path: "src/bin/scratch/frag.hlsl"
     }
 }
