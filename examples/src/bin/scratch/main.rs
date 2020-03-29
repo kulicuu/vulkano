@@ -71,8 +71,6 @@ struct Package {
 }
 
 
-
-
 // This function takes a string which we hope has three floats in there separated by spaces.
 // We want to return a Some(Vec<f64>) or None.
 fn find_three_floats(input : &str) -> Option<Vec<f64>> {
@@ -128,8 +126,6 @@ fn process_str_ints(input : &str) -> Vec<u32> {
 }
 
 
-
-
 fn process_str_floats(input: &str) -> Vec<Vec<f64>> {
 
     let start = String::from(input);
@@ -155,6 +151,7 @@ fn process_str_floats(input: &str) -> Vec<Vec<f64>> {
     }
     ret_vec
 }
+
 
 fn main() {
 
@@ -189,11 +186,8 @@ fn main() {
     };
 
 
-
-
     let mut terrain_f = std::fs::File::open("./examples/src/bin/scratch/terrain_mesh_003.txt").unwrap();
     let mut terrain_buffer = String::new();
-
 
 
     terrain_f.read_to_string(&mut terrain_buffer).unwrap();
@@ -466,19 +460,6 @@ fn main() {
                     .then_execute(queue.clone(), command_buffer).unwrap()
                     .then_swapchain_present(queue.clone(), swapchain.clone(), image_num)
                     .then_signal_fence_and_flush();
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

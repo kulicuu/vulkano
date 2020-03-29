@@ -26,3 +26,7 @@ png = "0.15.0"
 time = "0.1.38"
 tobj = "0.1.12"
 srtm = "0.1.1"
+shaderc = "0.6.2"
+notify = "4.0.15"
+tokio = { version = "0.2", features = ["full"] }
+mio = "0.7.0"
