@@ -90,19 +90,23 @@ pub struct Vertex {
     pub position: [f32; 2],
     pub color: [f32; 3],
 }
-
-
 vulkano::impl_vertex!(Vertex, position, color);
 
 
-fn vulkan_main() {
+#[derive(Debug, Clone, Copy)]
+enum CustomEvent {
+    Stub,
+}
+
+
+fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce()) {
     println!("Into Vulkan main");
     let required_extensions = vulkano_win::required_extensions();
     let instance = Instance::new(None, &required_extensions, None).unwrap();
     let physical = vk::instance::PhysicalDevice::enumerate(&instance).next().unwrap();
 
-    let event_loop = EventLoop::new();
-
+    let event_loop = EventLoop::<CustomEvent>::with_user_event();
+    let event_loop_proxy = event_loop.create_proxy();
     let surface = WindowBuilder::new().build_vk_surface(&event_loop, instance.clone()).unwrap();
 
     let queue_family = physical.queue_families().find(|&q| {
@@ -143,355 +147,388 @@ fn vulkan_main() {
         }
     ).unwrap());
 
-    let vs = {
-        let mut f = File::open("src/bin/studio/spirvs/vert.spv")
-            .expect("Can't find file src/bin/studio/vert.spv This example needs to be run from the root of the example crate.");
-        let mut v = vec![];
-        f.read_to_end(&mut v).unwrap();
-        // Create a ShaderModule on a device the same Shader::load does it.
-        // NOTE: You will have to verify correctness of the data by yourself!
-        unsafe { ShaderModule::new(device.clone(), &v) }.unwrap()
-    };
 
-    let fs = {
-        let mut f = File::open("src/bin/studio/frag.spv")
-            .expect("Can't find file src/bin/runtime-shader/frag.spv");
-        let mut v = vec![];
-        f.read_to_end(&mut v).unwrap();
-        unsafe { ShaderModule::new(device.clone(), &v) }.unwrap()
-    };
 
-    // This structure will tell Vulkan how input entries of our vertex shader look like
-    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-    struct VertInput;
 
-    unsafe impl ShaderInterfaceDef for VertInput {
-        type Iter = VertInputIter;
 
-        fn elements(&self) -> VertInputIter {
-            VertInputIter(0)
-        }
-    }
 
-    #[derive(Debug, Copy, Clone)]
-    struct VertInputIter(u16);
 
-    impl Iterator for VertInputIter {
-        type Item = ShaderInterfaceDefEntry;
 
-        #[inline]
-        fn next(&mut self) -> Option<Self::Item> {
-            // There are things to consider when giving out entries:
-            // * There must be only one entry per one location, you can't have
-            //   `color' and `position' entries both at 0..1 locations.  They also
-            //   should not overlap.
-            // * Format of each element must be no larger than 128 bits.
-            if self.0 == 0 {
-                self.0 += 1;
-                return Some(ShaderInterfaceDefEntry {
-                    location: 1..2,
-                    format: Format::R32G32B32Sfloat,
-                    name: Some(Cow::Borrowed("color"))
-                })
+    let cloj = move || {
+
+        let vs = {
+            let mut f = File::open("src/bin/studio/spirvs/vert.spv")
+                .expect("Can't find file src/bin/studio/vert.spv This example needs to be run from the root of the example crate.");
+            let mut v = vec![];
+            f.read_to_end(&mut v).unwrap();
+            // Create a ShaderModule on a device the same Shader::load does it.
+            // NOTE: You will have to verify correctness of the data by yourself!
+            unsafe { ShaderModule::new(device.clone(), &v) }.unwrap()
+        };
+
+        let fs = {
+            let mut f = File::open("src/bin/studio/frag.spv")
+                .expect("Can't find file src/bin/runtime-shader/frag.spv");
+            let mut v = vec![];
+            f.read_to_end(&mut v).unwrap();
+            unsafe { ShaderModule::new(device.clone(), &v) }.unwrap()
+        };
+
+        // This structure will tell Vulkan how input entries of our vertex shader look like
+        #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+        struct VertInput;
+
+        unsafe impl ShaderInterfaceDef for VertInput {
+            type Iter = VertInputIter;
+
+            fn elements(&self) -> VertInputIter {
+                VertInputIter(0)
             }
-            if self.0 == 1 {
-                self.0 += 1;
-                return Some(ShaderInterfaceDefEntry {
-                    location: 0..1,
-                    format: Format::R32G32Sfloat,
-                    name: Some(Cow::Borrowed("position"))
-                })
+        }
+
+        #[derive(Debug, Copy, Clone)]
+        struct VertInputIter(u16);
+
+        impl Iterator for VertInputIter {
+            type Item = ShaderInterfaceDefEntry;
+
+            #[inline]
+            fn next(&mut self) -> Option<Self::Item> {
+                // There are things to consider when giving out entries:
+                // * There must be only one entry per one location, you can't have
+                //   `color' and `position' entries both at 0..1 locations.  They also
+                //   should not overlap.
+                // * Format of each element must be no larger than 128 bits.
+                if self.0 == 0 {
+                    self.0 += 1;
+                    return Some(ShaderInterfaceDefEntry {
+                        location: 1..2,
+                        format: Format::R32G32B32Sfloat,
+                        name: Some(Cow::Borrowed("color"))
+                    })
+                }
+                if self.0 == 1 {
+                    self.0 += 1;
+                    return Some(ShaderInterfaceDefEntry {
+                        location: 0..1,
+                        format: Format::R32G32Sfloat,
+                        name: Some(Cow::Borrowed("position"))
+                    })
+                }
+                None
             }
-            None
-        }
 
-        #[inline]
-        fn size_hint(&self) -> (usize, Option<usize>) {
-            // We must return exact number of entries left in iterator.
-            let len = (2 - self.0) as usize;
-            (len, Some(len))
-        }
-    }
-
-    impl ExactSizeIterator for VertInputIter { }
-
-    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-    struct VertOutput;
-
-    unsafe impl ShaderInterfaceDef for VertOutput {
-        type Iter = VertOutputIter;
-
-        fn elements(&self) -> VertOutputIter {
-            VertOutputIter(0)
-        }
-    }
-
-    // This structure will tell Vulkan how output entries (those passed to next
-    // stage) of our vertex shader look like.
-    #[derive(Debug, Copy, Clone)]
-    struct VertOutputIter(u16);
-
-    impl Iterator for VertOutputIter {
-        type Item = ShaderInterfaceDefEntry;
-
-        #[inline]
-        fn next(&mut self) -> Option<Self::Item> {
-            if self.0 == 0 {
-                self.0 += 1;
-                return Some(ShaderInterfaceDefEntry {
-                    location: 0..1,
-                    format: Format::R32G32B32Sfloat,
-                    name: Some(Cow::Borrowed("v_color"))
-                })
+            #[inline]
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                // We must return exact number of entries left in iterator.
+                let len = (2 - self.0) as usize;
+                (len, Some(len))
             }
-            None
         }
 
-        #[inline]
-        fn size_hint(&self) -> (usize, Option<usize>) {
-            let len = (1 - self.0) as usize;
-            (len, Some(len))
-        }
-    }
+        impl ExactSizeIterator for VertInputIter { }
 
-    impl ExactSizeIterator for VertOutputIter { }
+        #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+        struct VertOutput;
 
-    // This structure describes layout of this stage.
-    #[derive(Debug, Copy, Clone)]
-    struct VertLayout(ShaderStages);
-    unsafe impl PipelineLayoutDesc for VertLayout {
-        // Number of descriptor sets it takes.
-        fn num_sets(&self) -> usize { 0 }
-        // Number of entries (bindings) in each set.
-        fn num_bindings_in_set(&self, _set: usize) -> Option<usize> { None }
-        // Descriptor descriptions.
-        fn descriptor(&self, _set: usize, _binding: usize) -> Option<DescriptorDesc> { None }
-        // Number of push constants ranges (think: number of push constants).
-        fn num_push_constants_ranges(&self) -> usize { 0 }
-        // Each push constant range in memory.
-        fn push_constants_range(&self, _num: usize) -> Option<PipelineLayoutDescPcRange> { None }
-    }
+        unsafe impl ShaderInterfaceDef for VertOutput {
+            type Iter = VertOutputIter;
 
-    // Same as with our vertex shader, but for fragment one instead.
-    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-    struct FragInput;
-    unsafe impl ShaderInterfaceDef for FragInput {
-        type Iter = FragInputIter;
-
-        fn elements(&self) -> FragInputIter {
-            FragInputIter(0)
-        }
-    }
-    #[derive(Debug, Copy, Clone)]
-    struct FragInputIter(u16);
-
-    impl Iterator for FragInputIter {
-        type Item = ShaderInterfaceDefEntry;
-
-        #[inline]
-        fn next(&mut self) -> Option<Self::Item> {
-            if self.0 == 0 {
-                self.0 += 1;
-                return Some(ShaderInterfaceDefEntry {
-                    location: 0..1,
-                    format: Format::R32G32B32Sfloat,
-                    name: Some(Cow::Borrowed("v_color"))
-                })
+            fn elements(&self) -> VertOutputIter {
+                VertOutputIter(0)
             }
-            None
         }
 
-        #[inline]
-        fn size_hint(&self) -> (usize, Option<usize>) {
-            let len = (1 - self.0) as usize;
-            (len, Some(len))
-        }
-    }
+        // This structure will tell Vulkan how output entries (those passed to next
+        // stage) of our vertex shader look like.
+        #[derive(Debug, Copy, Clone)]
+        struct VertOutputIter(u16);
 
-    impl ExactSizeIterator for FragInputIter { }
+        impl Iterator for VertOutputIter {
+            type Item = ShaderInterfaceDefEntry;
 
-    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-    struct FragOutput;
-    unsafe impl ShaderInterfaceDef for FragOutput {
-        type Iter = FragOutputIter;
-
-        fn elements(&self) -> FragOutputIter {
-            FragOutputIter(0)
-        }
-    }
-
-    #[derive(Debug, Copy, Clone)]
-    struct FragOutputIter(u16);
-
-    impl Iterator for FragOutputIter {
-        type Item = ShaderInterfaceDefEntry;
-
-        #[inline]
-        fn next(&mut self) -> Option<Self::Item> {
-            // Note that color fragment color entry will be determined
-            // automatically by Vulkano.
-            if self.0 == 0 {
-                self.0 += 1;
-                return Some(ShaderInterfaceDefEntry {
-                    location: 0..1,
-                    format: Format::R32G32B32A32Sfloat,
-                    name: Some(Cow::Borrowed("f_color"))
-                })
+            #[inline]
+            fn next(&mut self) -> Option<Self::Item> {
+                if self.0 == 0 {
+                    self.0 += 1;
+                    return Some(ShaderInterfaceDefEntry {
+                        location: 0..1,
+                        format: Format::R32G32B32Sfloat,
+                        name: Some(Cow::Borrowed("v_color"))
+                    })
+                }
+                None
             }
-            None
+
+            #[inline]
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                let len = (1 - self.0) as usize;
+                (len, Some(len))
+            }
         }
-        #[inline]
-        fn size_hint(&self) -> (usize, Option<usize>) {
-            let len = (1 - self.0) as usize;
-            (len, Some(len))
+
+        impl ExactSizeIterator for VertOutputIter { }
+
+        // This structure describes layout of this stage.
+        #[derive(Debug, Copy, Clone)]
+        struct VertLayout(ShaderStages);
+        unsafe impl PipelineLayoutDesc for VertLayout {
+            // Number of descriptor sets it takes.
+            fn num_sets(&self) -> usize { 0 }
+            // Number of entries (bindings) in each set.
+            fn num_bindings_in_set(&self, _set: usize) -> Option<usize> { None }
+            // Descriptor descriptions.
+            fn descriptor(&self, _set: usize, _binding: usize) -> Option<DescriptorDesc> { None }
+            // Number of push constants ranges (think: number of push constants).
+            fn num_push_constants_ranges(&self) -> usize { 0 }
+            // Each push constant range in memory.
+            fn push_constants_range(&self, _num: usize) -> Option<PipelineLayoutDescPcRange> { None }
         }
-    }
 
-    impl ExactSizeIterator for FragOutputIter { }
+        // Same as with our vertex shader, but for fragment one instead.
+        #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+        struct FragInput;
+        unsafe impl ShaderInterfaceDef for FragInput {
+            type Iter = FragInputIter;
 
-    // Layout same as with vertex shader.
-    #[derive(Debug, Copy, Clone)]
-    struct FragLayout(ShaderStages);
-    unsafe impl PipelineLayoutDesc for FragLayout {
-        fn num_sets(&self) -> usize { 0 }
-        fn num_bindings_in_set(&self, _set: usize) -> Option<usize> { None }
-        fn descriptor(&self, _set: usize, _binding: usize) -> Option<DescriptorDesc> { None }
-        fn num_push_constants_ranges(&self) -> usize { 0 }
-        fn push_constants_range(&self, _num: usize) -> Option<PipelineLayoutDescPcRange> { None }
-    }
+            fn elements(&self) -> FragInputIter {
+                FragInputIter(0)
+            }
+        }
+        #[derive(Debug, Copy, Clone)]
+        struct FragInputIter(u16);
 
-    // NOTE: ShaderModule::*_shader_entry_point calls do not do any error
-    // checking and you have to verify correctness of what you are doing by
-    // yourself.
-    //
-    // You must be extra careful to specify correct entry point, or program will
-    // crash at runtime outside of rust and you will get NO meaningful error
-    // information!
-    let vert_main = unsafe { vs.graphics_entry_point(
-        CStr::from_bytes_with_nul_unchecked(b"main\0"),
-        VertInput,
-        VertOutput,
-        VertLayout(ShaderStages { vertex: true, ..ShaderStages::none() }),
-        GraphicsShaderType::Vertex
-    ) };
+        impl Iterator for FragInputIter {
+            type Item = ShaderInterfaceDefEntry;
 
-    let frag_main = unsafe { fs.graphics_entry_point(
-        CStr::from_bytes_with_nul_unchecked(b"main\0"),
-        FragInput,
-        FragOutput,
-        FragLayout(ShaderStages { fragment: true, ..ShaderStages::none() }),
-        GraphicsShaderType::Fragment
-    ) };
+            #[inline]
+            fn next(&mut self) -> Option<Self::Item> {
+                if self.0 == 0 {
+                    self.0 += 1;
+                    return Some(ShaderInterfaceDefEntry {
+                        location: 0..1,
+                        format: Format::R32G32B32Sfloat,
+                        name: Some(Cow::Borrowed("v_color"))
+                    })
+                }
+                None
+            }
 
-    let graphics_pipeline = Arc::new(
-        GraphicsPipeline::start()
-            .vertex_input(SingleBufferDefinition::<Vertex>::new())
-            .vertex_shader(vert_main, ())
-            .triangle_list()
-            .viewports_dynamic_scissors_irrelevant(1)
-            .fragment_shader(frag_main, ())
-            .cull_mode_front()
-            .front_face_counter_clockwise()
-            .depth_stencil_disabled()
-            .render_pass(Subpass::from(render_pass.clone(), 0).unwrap())
-            .build(device.clone())
-            .unwrap(),
-    );
+            #[inline]
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                let len = (1 - self.0) as usize;
+                (len, Some(len))
+            }
+        }
 
-    let mut recreate_swapchain = false;
+        impl ExactSizeIterator for FragInputIter { }
 
-    let vertex_buffer = CpuAccessibleBuffer::from_iter(
-        device.clone(),
-        BufferUsage::all(),
-        false,
-        [
-            Vertex { position: [-1.0,  1.0], color: [1.0, 0.0, 0.0] },
-            Vertex { position: [ 0.0, -1.0], color: [0.0, 1.0, 0.0] },
-            Vertex { position: [ 1.0,  1.0], color: [0.0, 0.0, 1.0] },
-        ].iter().cloned()
-    ).unwrap();
+        #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+        struct FragOutput;
+        unsafe impl ShaderInterfaceDef for FragOutput {
+            type Iter = FragOutputIter;
 
-    // NOTE: We don't create any descriptor sets in this example, but you should
-    // note that passing wrong types, providing sets at wrong indexes will cause
-    // descriptor set builder to return Err!
+            fn elements(&self) -> FragOutputIter {
+                FragOutputIter(0)
+            }
+        }
 
-    let mut dynamic_state = DynamicState { line_width: None, viewports: None, scissors: None, compare_mask: None, write_mask: None, reference: None };
-    let mut framebuffers = window_size_dependent_setup(&images, render_pass.clone(), &mut dynamic_state);
-    let mut previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<dyn GpuFuture>);
+        #[derive(Debug, Copy, Clone)]
+        struct FragOutputIter(u16);
 
-    event_loop.run(move |event, _, control_flow| {
+        impl Iterator for FragOutputIter {
+            type Item = ShaderInterfaceDefEntry;
+
+            #[inline]
+            fn next(&mut self) -> Option<Self::Item> {
+                // Note that color fragment color entry will be determined
+                // automatically by Vulkano.
+                if self.0 == 0 {
+                    self.0 += 1;
+                    return Some(ShaderInterfaceDefEntry {
+                        location: 0..1,
+                        format: Format::R32G32B32A32Sfloat,
+                        name: Some(Cow::Borrowed("f_color"))
+                    })
+                }
+                None
+            }
+            #[inline]
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                let len = (1 - self.0) as usize;
+                (len, Some(len))
+            }
+        }
+
+        impl ExactSizeIterator for FragOutputIter { }
+
+        // Layout same as with vertex shader.
+        #[derive(Debug, Copy, Clone)]
+        struct FragLayout(ShaderStages);
+        unsafe impl PipelineLayoutDesc for FragLayout {
+            fn num_sets(&self) -> usize { 0 }
+            fn num_bindings_in_set(&self, _set: usize) -> Option<usize> { None }
+            fn descriptor(&self, _set: usize, _binding: usize) -> Option<DescriptorDesc> { None }
+            fn num_push_constants_ranges(&self) -> usize { 0 }
+            fn push_constants_range(&self, _num: usize) -> Option<PipelineLayoutDescPcRange> { None }
+        }
+
+        // NOTE: ShaderModule::*_shader_entry_point calls do not do any error
+        // checking and you have to verify correctness of what you are doing by
+        // yourself.
+        //
+        // You must be extra careful to specify correct entry point, or program will
+        // crash at runtime outside of rust and you will get NO meaningful error
+        // information!
+        let vert_main = unsafe { vs.graphics_entry_point(
+            CStr::from_bytes_with_nul_unchecked(b"main\0"),
+            VertInput,
+            VertOutput,
+            VertLayout(ShaderStages { vertex: true, ..ShaderStages::none() }),
+            GraphicsShaderType::Vertex
+        ) };
+
+        let frag_main = unsafe { fs.graphics_entry_point(
+            CStr::from_bytes_with_nul_unchecked(b"main\0"),
+            FragInput,
+            FragOutput,
+            FragLayout(ShaderStages { fragment: true, ..ShaderStages::none() }),
+            GraphicsShaderType::Fragment
+        ) };
+
+        let graphics_pipeline = Arc::new(
+            GraphicsPipeline::start()
+                .vertex_input(SingleBufferDefinition::<Vertex>::new())
+                .vertex_shader(vert_main, ())
+                .triangle_list()
+                .viewports_dynamic_scissors_irrelevant(1)
+                .fragment_shader(frag_main, ())
+                .cull_mode_front()
+                .front_face_counter_clockwise()
+                .depth_stencil_disabled()
+                .render_pass(Subpass::from(render_pass.clone(), 0).unwrap())
+                .build(device.clone())
+                .unwrap(),
+        );
+
+        let mut recreate_swapchain = false;
+
+        let vertex_buffer = CpuAccessibleBuffer::from_iter(
+            device.clone(),
+            BufferUsage::all(),
+            false,
+            [
+                Vertex { position: [-1.0,  1.0], color: [1.0, 0.0, 0.0] },
+                Vertex { position: [ 0.0, -1.0], color: [0.0, 1.0, 0.0] },
+                Vertex { position: [ 1.0,  1.0], color: [0.0, 0.0, 1.0] },
+            ].iter().cloned()
+        ).unwrap();
+
+        // NOTE: We don't create any descriptor sets in this example, but you should
+        // note that passing wrong types, providing sets at wrong indexes will cause
+        // descriptor set builder to return Err!
+
+        let mut dynamic_state = DynamicState { line_width: None, viewports: None, scissors: None, compare_mask: None, write_mask: None, reference: None };
+        let mut framebuffers = window_size_dependent_setup(&images, render_pass.clone(), &mut dynamic_state);
+        let mut previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<dyn GpuFuture>);
 
 
 
-        match event {
-            Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
-                *control_flow = ControlFlow::Exit;
-            },
-            Event::WindowEvent { event: WindowEvent::Resized(_), .. } => {
-                recreate_swapchain = true;
-            },
-            Event::RedrawEventsCleared => {
-                previous_frame_end.as_mut().unwrap().cleanup_finished();
+        event_loop.run(move |event, _, control_flow| {
+            match event {
+                Event::UserEvent(event) => {
+                    println!("yahhh");
+                    *control_flow = ControlFlow::Exit;
+                },
+                Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
+                    *control_flow = ControlFlow::Exit;
+                },
+                Event::WindowEvent { event: WindowEvent::Resized(_), .. } => {
+                    recreate_swapchain = true;
+                },
+                Event::RedrawEventsCleared => {
+                    previous_frame_end.as_mut().unwrap().cleanup_finished();
 
-                if recreate_swapchain {
-                    let dimensions: [u32; 2] = surface.window().inner_size().into();
-                    let (new_swapchain, new_images) = match swapchain.recreate_with_dimensions(dimensions) {
+                    if recreate_swapchain {
+                        let dimensions: [u32; 2] = surface.window().inner_size().into();
+                        let (new_swapchain, new_images) = match swapchain.recreate_with_dimensions(dimensions) {
+                            Ok(r) => r,
+                            Err(SwapchainCreationError::UnsupportedDimensions) => return,
+                            Err(e) => panic!("Failed to recreate swapchain: {:?}", e)
+                        };
+
+                        swapchain = new_swapchain;
+                        framebuffers = window_size_dependent_setup(&new_images, render_pass.clone(), &mut dynamic_state);
+                        recreate_swapchain = false;
+                    }
+
+                    let (image_num, suboptimal, acquire_future) = match swapchain::acquire_next_image(swapchain.clone(), None) {
                         Ok(r) => r,
-                        Err(SwapchainCreationError::UnsupportedDimensions) => return,
-                        Err(e) => panic!("Failed to recreate swapchain: {:?}", e)
+                        Err(AcquireError::OutOfDate) => {
+                            recreate_swapchain = true;
+                            return;
+                        },
+                        Err(e) => panic!("Failed to acquire next image: {:?}", e)
                     };
 
-                    swapchain = new_swapchain;
-                    framebuffers = window_size_dependent_setup(&new_images, render_pass.clone(), &mut dynamic_state);
-                    recreate_swapchain = false;
-                }
-
-                let (image_num, suboptimal, acquire_future) = match swapchain::acquire_next_image(swapchain.clone(), None) {
-                    Ok(r) => r,
-                    Err(AcquireError::OutOfDate) => {
+                    if suboptimal {
                         recreate_swapchain = true;
-                        return;
-                    },
-                    Err(e) => panic!("Failed to acquire next image: {:?}", e)
-                };
-
-                if suboptimal {
-                    recreate_swapchain = true;
-                }
-
-                let clear_values = vec!([0.0, 0.0, 0.0, 1.0].into());
-                let command_buffer = AutoCommandBufferBuilder::new(device.clone(), queue.family()).unwrap()
-                    .begin_render_pass(framebuffers[image_num].clone(), false, clear_values).unwrap()
-                    .draw(graphics_pipeline.clone(), &dynamic_state, vertex_buffer.clone(), (), ()).unwrap()
-                    .end_render_pass().unwrap()
-                    .build().unwrap();
-
-                let future = previous_frame_end.take().unwrap()
-                    .join(acquire_future)
-                    .then_execute(queue.clone(), command_buffer).unwrap()
-                    .then_swapchain_present(queue.clone(), swapchain.clone(), image_num)
-                    .then_signal_fence_and_flush();
-
-                match future {
-                    Ok(future) => {
-                        previous_frame_end = Some(Box::new(future) as Box<_>);
-                    },
-                    Err(FlushError::OutOfDate) => {
-                        recreate_swapchain = true;
-                        previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
                     }
-                    Err(e) => {
-                        println!("Failed to flush future: {:?}", e);
-                        previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
+
+                    let clear_values = vec!([0.0, 0.0, 0.0, 1.0].into());
+                    let command_buffer = AutoCommandBufferBuilder::new(device.clone(), queue.family()).unwrap()
+                        .begin_render_pass(framebuffers[image_num].clone(), false, clear_values).unwrap()
+                        .draw(graphics_pipeline.clone(), &dynamic_state, vertex_buffer.clone(), (), ()).unwrap()
+                        .end_render_pass().unwrap()
+                        .build().unwrap();
+
+                    let future = previous_frame_end.take().unwrap()
+                        .join(acquire_future)
+                        .then_execute(queue.clone(), command_buffer).unwrap()
+                        .then_swapchain_present(queue.clone(), swapchain.clone(), image_num)
+                        .then_signal_fence_and_flush();
+
+                    match future {
+                        Ok(future) => {
+                            previous_frame_end = Some(Box::new(future) as Box<_>);
+                        },
+                        Err(FlushError::OutOfDate) => {
+                            recreate_swapchain = true;
+                            previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
+                        }
+                        Err(e) => {
+                            println!("Failed to flush future: {:?}", e);
+                            previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
+                        }
                     }
-                }
-            },
-            _ => ()
-        }
-    });
+                },
+                _ => ()
+            }
+        });
+    };
+
+
+
+
+
+
+
+    (event_loop_proxy, cloj)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
-
 
 
 
@@ -500,8 +537,9 @@ fn vulkan_main() {
 fn main() {
 
 
+
     let (send, recv) = channel();
-    let (snd, rcv) = channel();
+    // let (snd, rcv) = channel();
 
     let mut watcher: RecommendedWatcher = Watcher::new(send, Duration::from_secs(2)).unwrap();
     watcher.watch("./src/bin/studio/shaders", RecursiveMode::Recursive);
@@ -509,16 +547,17 @@ fn main() {
 
 
 
-    // let event_loop_proxy = render_setup();
+    let (event_loop_proxy, cloj) = vulkan_main();
+
+
 
     thread::spawn(move || {
         loop {
             match recv.recv() {
                 Ok(event) => {
                     compile_shaders();
-                    // event_loop_proxy(33);
+                    event_loop_proxy.send_event(CustomEvent::Stub);
                     println!("Event: {:?}", event);
-                    snd.send(22).unwrap();
                 },
                 Err(e) => println!("Watch Error: {:?}", e)
             }
@@ -530,7 +569,8 @@ fn main() {
 
 
 
-    vulkan_main();
+
+    cloj();
 
 
 
