@@ -155,7 +155,7 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
 
 
     let cloj = move || {
-
+        println!("herererer1123");
         let vs = {
             let mut f = File::open("src/bin/studio/spirvs/vert.spv")
                 .expect("Can't find file src/bin/studio/vert.spv This example needs to be run from the root of the example crate.");
@@ -539,7 +539,7 @@ fn main() {
 
 
     let (send, recv) = channel();
-    // let (snd, rcv) = channel();
+    let (snd, rcv) = channel();
 
     let mut watcher: RecommendedWatcher = Watcher::new(send, Duration::from_secs(2)).unwrap();
     watcher.watch("./src/bin/studio/shaders", RecursiveMode::Recursive);
@@ -548,6 +548,8 @@ fn main() {
 
 
     let (event_loop_proxy, cloj) = vulkan_main();
+
+    // let cloj2 = cloj.to_owned();
 
 
 
@@ -558,19 +560,28 @@ fn main() {
                     compile_shaders();
                     event_loop_proxy.send_event(CustomEvent::Stub);
                     println!("Event: {:?}", event);
+                    snd.send("okaythen");
+                    let (event_loop_proxy, cloj) = vulkan_main();
+
                 },
                 Err(e) => println!("Watch Error: {:?}", e)
             }
         }
     });
 
-
-
-
-
-
-
     cloj();
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
