@@ -61,32 +61,16 @@ use std::io::prelude::*;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
 use std::time::Duration;
+use std::thread;
 
-use tokio::prelude::*;
-
-use mio::event;
-use mio::{Events, Interest, Poll, Registry, Token};
 
 
 use notify::{RecommendedWatcher, Watcher, RecursiveMode};
 
-fn watch() -> notify::Result<()> {
-    let (tx, rx) = channel();
-    let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(2)).unwrap();
-    watcher.watch("./src/bin/studio/shaders", RecursiveMode::Recursive);
-    loop {
-        match rx.recv() {
-            Ok(event) => println!("Event: {:?}", event),
-            Err(e) => println!("Watch Error: {:?}", e)
-        }
-    }
-}
-
-
 
 
 fn compile_shaders() {
-    let mut file = File::open("src/bin/studio/vertTest.glsl").unwrap();
+    let mut file = File::open("src/bin/studio/shaders/vertTest.glsl").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     let source = &contents[..];
@@ -96,11 +80,9 @@ fn compile_shaders() {
     let binary_result = compiler.compile_into_spirv(
         source, shaderc::ShaderKind::Vertex,
         "", "main", Some(&options)).unwrap();
-    let mut f = File::create("src/bin/studio/vert.spv").unwrap();
+    let mut f = File::create("src/bin/studio/spirvs/vert.spv").unwrap();
     f.write_all(binary_result.as_binary_u8());
 }
-
-
 
 
 #[derive(Default, Copy, Clone)]
@@ -110,29 +92,17 @@ pub struct Vertex {
 }
 
 
-
-
 vulkano::impl_vertex!(Vertex, position, color);
 
-fn main() {
 
-
-    // if let Err(e) = watch() {
-    //     println!("error: {:?}", e)
-    // }
-
-    compile_shaders();
-
-
-
-
-
-
+fn vulkan_main() {
+    println!("Into Vulkan main");
     let required_extensions = vulkano_win::required_extensions();
     let instance = Instance::new(None, &required_extensions, None).unwrap();
     let physical = vk::instance::PhysicalDevice::enumerate(&instance).next().unwrap();
 
     let event_loop = EventLoop::new();
+
     let surface = WindowBuilder::new().build_vk_surface(&event_loop, instance.clone()).unwrap();
 
     let queue_family = physical.queue_families().find(|&q| {
@@ -174,7 +144,7 @@ fn main() {
     ).unwrap());
 
     let vs = {
-        let mut f = File::open("src/bin/studio/vert.spv")
+        let mut f = File::open("src/bin/studio/spirvs/vert.spv")
             .expect("Can't find file src/bin/studio/vert.spv This example needs to be run from the root of the example crate.");
         let mut v = vec![];
         f.read_to_end(&mut v).unwrap();
@@ -450,6 +420,9 @@ fn main() {
     let mut previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<dyn GpuFuture>);
 
     event_loop.run(move |event, _, control_flow| {
+
+
+
         match event {
             Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
                 *control_flow = ControlFlow::Exit;
@@ -516,6 +489,60 @@ fn main() {
             _ => ()
         }
     });
+
+}
+
+
+
+
+
+
+fn main() {
+
+
+    let (send, recv) = channel();
+    let (snd, rcv) = channel();
+
+    let mut watcher: RecommendedWatcher = Watcher::new(send, Duration::from_secs(2)).unwrap();
+    watcher.watch("./src/bin/studio/shaders", RecursiveMode::Recursive);
+
+
+
+
+    // let event_loop_proxy = render_setup();
+
+    thread::spawn(move || {
+        loop {
+            match recv.recv() {
+                Ok(event) => {
+                    compile_shaders();
+                    // event_loop_proxy(33);
+                    println!("Event: {:?}", event);
+                    snd.send(22).unwrap();
+                },
+                Err(e) => println!("Watch Error: {:?}", e)
+            }
+        }
+    });
+
+
+
+
+
+
+    vulkan_main();
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
