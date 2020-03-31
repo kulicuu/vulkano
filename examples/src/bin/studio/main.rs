@@ -63,11 +63,7 @@ use std::sync::mpsc::channel;
 use std::time::Duration;
 use std::thread;
 
-
-
 use notify::{RecommendedWatcher, Watcher, RecursiveMode};
-
-
 
 fn compile_shaders() {
     let mut file = File::open("src/bin/studio/shaders/vertTest.glsl").unwrap();
@@ -84,7 +80,6 @@ fn compile_shaders() {
     f.write_all(binary_result.as_binary_u8());
 }
 
-
 #[derive(Default, Copy, Clone)]
 pub struct Vertex {
     pub position: [f32; 2],
@@ -98,9 +93,7 @@ enum CustomEvent {
     Stub,
 }
 
-
 fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce()) {
-    println!("Into Vulkan main");
     let required_extensions = vulkano_win::required_extensions();
     let instance = Instance::new(None, &required_extensions, None).unwrap();
     let physical = vk::instance::PhysicalDevice::enumerate(&instance).next().unwrap();
@@ -159,8 +152,8 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
     };
 
     let fs = {
-        let mut f = File::open("src/bin/studio/frag.spv")
-            .expect("Can't find file src/bin/runtime-shader/frag.spv");
+        let mut f = File::open("src/bin/studio/spirvs/frag.spv")
+            .expect("Can't find file src/bin/studio/spirvs/frag.spv");
         let mut v = vec![];
         f.read_to_end(&mut v).unwrap();
         unsafe { ShaderModule::new(device.clone(), &v) }.unwrap()
@@ -282,7 +275,6 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
     struct FragInput;
     unsafe impl ShaderInterfaceDef for FragInput {
         type Iter = FragInputIter;
-
         fn elements(&self) -> FragInputIter {
             FragInputIter(0)
         }
@@ -424,24 +416,10 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
     let mut framebuffers = window_size_dependent_setup(&images, render_pass.clone(), &mut dynamic_state);
     let mut previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<dyn GpuFuture>);
 
-
-
-
-
     let cloj = move || {
-        println!("herererer1123");
-
-
-
-
         event_loop.run(move |event, _, control_flow| {
             match event {
                 Event::UserEvent(event) => {
-                    println!("yahhh");
-                    // *control_flow = ControlFlow::Exit;
-                    // recreate_swapchain = true;
-                    // previous_frame_end.as_mut().unwrap().cleanup_finished();
-
                     let vs = {
                         let mut f = File::open("src/bin/studio/spirvs/vert.spv")
                             .expect("Can't find file src/bin/studio/vert.spv This example needs to be run from the root of the example crate.");
@@ -453,13 +431,12 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
                     };
 
                     let fs = {
-                        let mut f = File::open("src/bin/studio/frag.spv")
+                        let mut f = File::open("src/bin/studio/spirvs/frag.spv")
                             .expect("Can't find file src/bin/runtime-shader/frag.spv");
                         let mut v = vec![];
                         f.read_to_end(&mut v).unwrap();
                         unsafe { ShaderModule::new(device.clone(), &v) }.unwrap()
                     };
-
 
                     // NOTE: ShaderModule::*_shader_entry_point calls do not do any error
                     // checking and you have to verify correctness of what you are doing by
@@ -498,9 +475,6 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
                             .build(device.clone())
                             .unwrap(),
                     );
-
-
-
 
                     previous_frame_end.as_mut().unwrap().cleanup_finished();
 
@@ -556,7 +530,6 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
                             previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
                         }
                     }
-
                 },
                 Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
                     *control_flow = ControlFlow::Exit;
@@ -565,10 +538,9 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
                     recreate_swapchain = true;
                 },
                 Event::RedrawEventsCleared => {
-
                     let vs = {
                         let mut f = File::open("src/bin/studio/spirvs/vert.spv")
-                            .expect("Can't find file src/bin/studio/vert.spv This example needs to be run from the root of the example crate.");
+                            .expect("Can't find file src/bin/studio/spirvs/vert.spv This example needs to be run from the root of the example crate.");
                         let mut v = vec![];
                         f.read_to_end(&mut v).unwrap();
                         // Create a ShaderModule on a device the same Shader::load does it.
@@ -577,13 +549,12 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
                     };
 
                     let fs = {
-                        let mut f = File::open("src/bin/studio/frag.spv")
-                            .expect("Can't find file src/bin/runtime-shader/frag.spv");
+                        let mut f = File::open("src/bin/studio/spirvs/frag.spv")
+                            .expect("Can't find file src/bin/studio/spirvs/frag.spv");
                         let mut v = vec![];
                         f.read_to_end(&mut v).unwrap();
                         unsafe { ShaderModule::new(device.clone(), &v) }.unwrap()
                     };
-
 
                     // NOTE: ShaderModule::*_shader_entry_point calls do not do any error
                     // checking and you have to verify correctness of what you are doing by
@@ -623,7 +594,6 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
                             .unwrap(),
                     );
 
-                    
                     previous_frame_end.as_mut().unwrap().cleanup_finished();
 
                     if recreate_swapchain {
@@ -683,99 +653,28 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
             }
         });
     };
-
-
-
-
-
-
-
     (event_loop_proxy, cloj)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 
-
-
-
 fn main() {
-
-
-
     let (send, recv) = channel();
-    let (snd, rcv) = channel();
-
     let mut watcher: RecommendedWatcher = Watcher::new(send, Duration::from_secs(2)).unwrap();
     watcher.watch("./src/bin/studio/shaders", RecursiveMode::Recursive);
-
-
-
-
     let (event_loop_proxy, cloj) = vulkan_main();
-
-    // let cloj2 = cloj.to_owned();
-
-
-
     thread::spawn(move || {
         loop {
             match recv.recv() {
                 Ok(event) => {
                     compile_shaders();
                     event_loop_proxy.send_event(CustomEvent::Stub);
-                    println!("Event: {:?}", event);
-                    snd.send("okaythen");
-                    // let (event_loop_proxy, cloj) = vulkan_main();
-
                 },
                 Err(e) => println!("Watch Error: {:?}", e)
             }
         }
     });
-
-
-
-
     cloj();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
 
 
 fn window_size_dependent_setup(
@@ -795,8 +694,8 @@ fn window_size_dependent_setup(
     images.iter().map(|image| {
         Arc::new(
             Framebuffer::start(render_pass.clone())
-                .add(image.clone()).unwrap()
-                .build().unwrap()
+            .add(image.clone()).unwrap()
+            .build().unwrap()
         ) as Arc<dyn FramebufferAbstract + Send + Sync>
     }).collect::<Vec<_>>()
 }

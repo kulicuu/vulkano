@@ -8,6 +8,11 @@ This is an experiment studying with the runtime-shader example, in order to make
 
 ## Goals
 
-1. Live shader reload on file watch with immediate screen render effect.
+1. Live shader reload on file watch with immediate screen render effect.  **Done**
 
 2. Interface to adjust the application defined transformations (matrices generally, the ones that live in application/Rust logic rather than GPU/shader logic) live during runtime.  This is pretty much the same as input for a game, except we'll be using it in a studio way to enable the developer to tranfer through various relevant morphisms.
+
+
+#### Note:
+
+Like the runtime-shader example, this should be run from the examples directory rather than the vulkano root.  
