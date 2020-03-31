@@ -59,6 +59,54 @@ struct Package {
     index_buffer: std::sync::Arc<CpuAccessibleBuffer::<[u32]>>
 }
 
+fn build_terrain(device: Arc<Device>) -> (Arc<CpuAccessibleBuffer::<[Vertex]>>, Arc<CpuAccessibleBuffer::<[Normal]>>, Arc<CpuAccessibleBuffer::<[u32]>>) {
+    let mut terrain_f = std::fs::File::open("./examples/src/bin/scratch/terrain_mesh_003.txt").unwrap();
+    let mut terrain_buffer = String::new();
+    terrain_f.read_to_string(&mut terrain_buffer).unwrap();
+    let x99 : Vec<&str> = terrain_buffer.split("Vertices:").collect();
+    let x100 = String::from(x99[1]);
+    let x101 : Vec<&str> = x100.split("Indices:").collect();
+    let x102 = String::from(x101[0]);  // This should just mostly be vertices with maybe a blank line and the title line "Vertices:"
+    let x103 = String::from(x101[1]); // This should have indices and normals
+    let x104 : Vec<&str> = x103.split("Normals:").collect();
+    let x160 = String::from(x104[0]); // This should be indices
+    let x105 = String::from(x104[1]); // This should be normals
+    let x106 = process_str_floats(&x102); // This should be a vector that we can turn into a positions buffer vertex_buffer
+    let mut x200 : Vec<Vertex> = Vec::new();
+
+    for (idx, item) in x106.iter().enumerate() {
+        x200.push( Vertex { position: (item[0] as f32, item[1] as f32, item[2] as f32)} );
+    }
+
+    let vertex_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x200.iter().cloned()).unwrap();
+    let x107 = process_str_floats(&x105);
+    let mut x300 : Vec<Normal> = Vec::new();
+    for (idx, item) in x107.iter().enumerate() {
+        x300.push( Normal { normal: (item[0] as f32, item[1] as f32, item[2] as f32)} );
+    }
+
+    let normals_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x300.iter().cloned()).unwrap();
+    let x161 = process_str_ints(&x160);
+    let index_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x161.iter().cloned()).unwrap();
+    (vertex_buffer_terrain, normals_buffer_terrain, index_buffer_terrain)
+}
+
+fn build_lear(device: Arc<Device>) -> Vec<Package> {
+    let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_300.obj"));
+    let (models, materials) = lear.unwrap();
+    let mut mashes : Vec<Package> = Vec::new();
+
+    for (index, model) in models.iter().enumerate() {
+        let mesh_500 = &model.mesh;
+        mashes.push(Package {
+            vertex_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.positions.iter().cloned()).unwrap(),
+            normals_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.normals.iter().cloned()).unwrap(),
+            index_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.indices.iter().cloned()).unwrap()
+        });
+    }
+    mashes
+}
+
 
 fn main() {
     let mut manager = RawInputManager::new().unwrap();
@@ -74,7 +122,6 @@ fn main() {
         q.supports_graphics() && surface.is_supported(q).unwrap_or(false)
     ).unwrap();
     let device_ext = DeviceExtensions { khr_swapchain: true, .. DeviceExtensions::none()};
-    // We can see in the triangle example the comment which explains the 0.5 -- it's a priority score for the queue.
     let (device, mut queues) = Device::new(
         physical, physical.supported_features(), &device_ext, [(queue_family, 0.5)].iter().cloned()
     ).unwrap();
@@ -84,85 +131,57 @@ fn main() {
         let usage = caps.supported_usage_flags;
         let format = caps.supported_formats[0].0;
         let alpha = caps.supported_composite_alpha.iter().next().unwrap();
-
-
         Swapchain::new(device.clone(), surface.clone(), caps.min_image_count, format, dimensions, 1,
             usage, &queue, SurfaceTransform::Identity, alpha, PresentMode::Fifo,
             FullscreenExclusive::Default, true, ColorSpace::SrgbNonLinear).unwrap()
     };
 
+    // let mut terrain_f = std::fs::File::open("./examples/src/bin/scratch/terrain_mesh_003.txt").unwrap();
+    // let mut terrain_buffer = String::new();
+    // terrain_f.read_to_string(&mut terrain_buffer).unwrap();
+    // let x99 : Vec<&str> = terrain_buffer.split("Vertices:").collect();
+    // let x100 = String::from(x99[1]);
+    // let x101 : Vec<&str> = x100.split("Indices:").collect();
+    // let x102 = String::from(x101[0]);  // This should just mostly be vertices with maybe a blank line and the title line "Vertices:"
+    // let x103 = String::from(x101[1]); // This should have indices and normals
+    // let x104 : Vec<&str> = x103.split("Normals:").collect();
+    // let x160 = String::from(x104[0]); // This should be indices
+    // let x105 = String::from(x104[1]); // This should be normals
+    // let x106 = process_str_floats(&x102); // This should be a vector that we can turn into a positions buffer vertex_buffer
+    // // println!("x106: {:?}", x106);
+    // let mut x200 : Vec<Vertex> = Vec::new();
+    //
+    // for (idx, item) in x106.iter().enumerate() {
+    //     // println!("item {:?} idx {:?}", item, idx);
+    //     x200.push( Vertex { position: (item[0] as f32, item[1] as f32, item[2] as f32)} );
+    // }
+    //
+    // let vertex_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x200.iter().cloned()).unwrap();
+    // let x107 = process_str_floats(&x105);
+    // let mut x300 : Vec<Normal> = Vec::new();
+    // for (idx, item) in x107.iter().enumerate() {
+    //     x300.push( Normal { normal: (item[0] as f32, item[1] as f32, item[2] as f32)} );
+    // }
+    //
+    // let normals_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x300.iter().cloned()).unwrap();
+    // let x161 = process_str_ints(&x160);
+    // let index_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x161.iter().cloned()).unwrap();
+    // let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_300.obj"));
+    // let (models, materials) = lear.unwrap();
+    // let mut mashes : Vec<Package> = Vec::new();
+    //
+    //
+    // for (index, model) in models.iter().enumerate() {
+    //     let mesh_500 = &model.mesh;
+    //     mashes.push(Package {
+    //         vertex_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.positions.iter().cloned()).unwrap(),
+    //         normals_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.normals.iter().cloned()).unwrap(),
+    //         index_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.indices.iter().cloned()).unwrap()
+    //     });
+    // }
 
-    let mut terrain_f = std::fs::File::open("./examples/src/bin/scratch/terrain_mesh_003.txt").unwrap();
-    let mut terrain_buffer = String::new();
-
-
-    terrain_f.read_to_string(&mut terrain_buffer).unwrap();
-    let x99 : Vec<&str> = terrain_buffer.split("Vertices:").collect();
-
-    let x100 = String::from(x99[1]);
-
-    let x101 : Vec<&str> = x100.split("Indices:").collect();
-
-    let x102 = String::from(x101[0]);  // This should just mostly be vertices with maybe a blank line and the title line "Vertices:"
-    let x103 = String::from(x101[1]); // This should have indices and normals
-
-    let x104 : Vec<&str> = x103.split("Normals:").collect();
-
-    let x160 = String::from(x104[0]); // This should be indices
-    let x105 = String::from(x104[1]); // This should be normals
-
-    let x106 = process_str_floats(&x102); // This should be a vector that we can turn into a positions buffer vertex_buffer
-
-    // println!("x106: {:?}", x106);
-
-    let mut x200 : Vec<Vertex> = Vec::new();
-
-    for (idx, item) in x106.iter().enumerate() {
-        // println!("item {:?} idx {:?}", item, idx);
-        x200.push( Vertex { position: (item[0] as f32, item[1] as f32, item[2] as f32)} );
-    }
-
-    let vertex_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x200.iter().cloned()).unwrap();
-
-
-    let x107 = process_str_floats(&x105);
-
-
-    let mut x300 : Vec<Normal> = Vec::new();
-    for (idx, item) in x107.iter().enumerate() {
-        x300.push( Normal { normal: (item[0] as f32, item[1] as f32, item[2] as f32)} );
-    }
-
-
-    let normals_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x300.iter().cloned()).unwrap();
-
-
-    let x161 = process_str_ints(&x160);
-
-    let index_buffer_terrain = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, x161.iter().cloned()).unwrap();
-
-
-
-    let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_300.obj"));
-
-
-
-    let (models, materials) = lear.unwrap();
-
-
-    let mut mashes : Vec<Package> = Vec::new();
-
-
-    for (index, model) in models.iter().enumerate() {
-        let mesh_500 = &model.mesh;
-
-        mashes.push(Package {
-            vertex_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.positions.iter().cloned()).unwrap(),
-            normals_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.normals.iter().cloned()).unwrap(),
-            index_buffer: CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, mesh_500.indices.iter().cloned()).unwrap()
-        });
-    }
-
+    let mashes : Vec<Package> = build_lear(device.clone());
+    let (vertex_buffer_terrain, normals_buffer_terrain, index_buffer_terrain) = build_terrain(device.clone());
 
 
     let uniform_buffer = CpuBufferPool::<vs::ty::Data>::new(device.clone(), BufferUsage::all());
@@ -192,25 +211,15 @@ fn main() {
         }
     ).unwrap();
 
-
-
     let render_pass = Arc::new(x700);
-
-
     let subpass = Subpass::from(render_pass.clone(), 0).unwrap();
-
-// https://docs.rs/vulkano/0.16.0/vulkano/command_buffer/struct.StateCacher.html
-
     let (mut pipeline, mut framebuffers, mut pipelineTerrain) = window_size_dependent_setup(device.clone(), &vs, &vsTerrain, &fs, &images, render_pass.clone());
     let mut recreate_swapchain = false;
-
     let mut previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<dyn GpuFuture>);
     let rotation_start = Instant::now();
-
-
-
-
     let mut x77 : f64 = 1.0;
+
+
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -222,11 +231,8 @@ fn main() {
             },
             Event::RedrawEventsCleared => {
                 previous_frame_end.as_mut().unwrap().cleanup_finished();
-
-
                 let mut x_input: f64 = 0.0;
                 let mut y_input: f64 = 0.0;
-
                 if let Some(event) = manager.get_event(){
                     match &event{
                         RawEvent::KeyboardEvent(_,  KeyId::Escape, State::Pressed)
@@ -246,12 +252,8 @@ fn main() {
                                 }
                             },
                         _ => (),
-
                     }
-
-
                 }
-
                 if recreate_swapchain {
                     let dimensions: [u32; 2] = surface.window().inner_size().into();
                     let (new_swapchain, new_images) = match swapchain.recreate_with_dimensions(dimensions) {
@@ -259,7 +261,6 @@ fn main() {
                         Err(SwapchainCreationError::UnsupportedDimensions) => return,
                         Err(e) => panic!("Failed to recreate swapchain: {:?}", e)
                     };
-
                     swapchain = new_swapchain;
                     let (new_pipeline, new_framebuffers, new_pipelineTerrain) = window_size_dependent_setup(device.clone(), &vs, &vsTerrain, &fs, &new_images, render_pass.clone());
                     pipeline = new_pipeline;
@@ -267,7 +268,6 @@ fn main() {
                     framebuffers = new_framebuffers;
                     recreate_swapchain = false;
                 }
-
                 let uniform_buffer_subbuffer = {
                     let elapsed = rotation_start.elapsed();
 
@@ -287,7 +287,6 @@ fn main() {
                         view: (view * scale).into(),
                         proj: proj.into(),
                     };
-
                     uniform_buffer.next(uniform_data).unwrap()
                 };
 
@@ -296,9 +295,6 @@ fn main() {
                     .add_buffer(uniform_buffer_subbuffer).unwrap()
                     .build().unwrap()
                 );
-
-
-
                 let (image_num, suboptimal, acquire_future) = match swapchain::acquire_next_image(swapchain.clone(), None) {
                     Ok(r) => r,
                     Err(AcquireError::OutOfDate) => {
@@ -307,25 +303,17 @@ fn main() {
                     },
                     Err(e) => panic!("Failed to acquire next image: {:?}", e)
                 };
-
                 if suboptimal {
                     recreate_swapchain = true;
                 }
-
-
                 let mut cb20 = AutoCommandBufferBuilder::secondary_graphics(device.clone(), queue.family(), subpass.clone()).unwrap();
-
                 cb20 = cb20
                 .draw_indexed(
                     pipelineTerrain.clone(),
                     &DynamicState::none(),
                     vec!(vertex_buffer_terrain.clone(), normals_buffer_terrain.clone()),
                     index_buffer_terrain.clone(), set.clone(), ()).unwrap();
-
                 let command_buffer_terrain = cb20.build().unwrap();
-
-
-
                 let mut cb1 = AutoCommandBufferBuilder::new(device.clone(), queue.family()).unwrap()
                 .begin_render_pass(
                     framebuffers[image_num].clone(), false,
@@ -335,8 +323,6 @@ fn main() {
                     ]
                 ).unwrap();
 
-
-
                 for (index, package) in mashes.iter().enumerate() {
                     cb1 = cb1
                     .draw_indexed(
@@ -345,33 +331,17 @@ fn main() {
                         vec!(package.vertex_buffer.clone(), package.normals_buffer.clone()),
                         package.index_buffer.clone(), set.clone(), ()).unwrap();
                 }
-
-
                 unsafe {
                     cb1 = cb1.execute_commands(command_buffer_terrain).unwrap();
                 }
-
-
                 let command_buffer = cb1.end_render_pass().unwrap()
                 .build().unwrap();
-
-
-
-
-
-
 
                 let future = previous_frame_end.take().unwrap()
                     .join(acquire_future)
                     .then_execute(queue.clone(), command_buffer).unwrap()
                     .then_swapchain_present(queue.clone(), swapchain.clone(), image_num)
                     .then_signal_fence_and_flush();
-
-
-
-
-
-
 
                 match future {
                    Ok(future) => {
@@ -386,8 +356,6 @@ fn main() {
                        previous_frame_end = Some(Box::new(sync::now(device.clone())) as Box<_>);
                    }
                }
-
-
             },
             _ => ()
         }

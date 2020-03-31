@@ -3,7 +3,6 @@
 use std::str::FromStr;
 
 
-
 pub fn process_str_ints(input : &str) -> Vec<u32> {
     let start = String::from(input);
     let mut lines = start.lines();
