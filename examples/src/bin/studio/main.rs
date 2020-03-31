@@ -66,7 +66,7 @@ use std::thread;
 use notify::{RecommendedWatcher, Watcher, RecursiveMode};
 
 fn compile_shaders() {
-    let mut file = File::open("src/bin/studio/shaders/vertTest.glsl").unwrap();
+    let mut file = File::open("examples/src/bin/studio/shaders/vertTest.glsl").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     let source = &contents[..];
@@ -76,7 +76,7 @@ fn compile_shaders() {
     let binary_result = compiler.compile_into_spirv(
         source, shaderc::ShaderKind::Vertex,
         "", "main", Some(&options)).unwrap();
-    let mut f = File::create("src/bin/studio/spirvs/vert.spv").unwrap();
+    let mut f = File::create("examples/src/bin/studio/spirvs/vert.spv").unwrap();
     f.write_all(binary_result.as_binary_u8());
 }
 
@@ -142,7 +142,7 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
 
 
     let vs = {
-        let mut f = File::open("src/bin/studio/spirvs/vert.spv")
+        let mut f = File::open("examples/src/bin/studio/spirvs/vert.spv")
             .expect("Can't find file src/bin/studio/vert.spv This example needs to be run from the root of the example crate.");
         let mut v = vec![];
         f.read_to_end(&mut v).unwrap();
@@ -152,7 +152,7 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
     };
 
     let fs = {
-        let mut f = File::open("src/bin/studio/spirvs/frag.spv")
+        let mut f = File::open("examples/src/bin/studio/spirvs/frag.spv")
             .expect("Can't find file src/bin/studio/spirvs/frag.spv");
         let mut v = vec![];
         f.read_to_end(&mut v).unwrap();
@@ -421,7 +421,7 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
             match event {
                 Event::UserEvent(event) => {
                     let vs = {
-                        let mut f = File::open("src/bin/studio/spirvs/vert.spv")
+                        let mut f = File::open("examples/src/bin/studio/spirvs/vert.spv")
                             .expect("Can't find file src/bin/studio/vert.spv This example needs to be run from the root of the example crate.");
                         let mut v = vec![];
                         f.read_to_end(&mut v).unwrap();
@@ -431,7 +431,7 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
                     };
 
                     let fs = {
-                        let mut f = File::open("src/bin/studio/spirvs/frag.spv")
+                        let mut f = File::open("examples/src/bin/studio/spirvs/frag.spv")
                             .expect("Can't find file src/bin/runtime-shader/frag.spv");
                         let mut v = vec![];
                         f.read_to_end(&mut v).unwrap();
@@ -539,7 +539,7 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
                 },
                 Event::RedrawEventsCleared => {
                     let vs = {
-                        let mut f = File::open("src/bin/studio/spirvs/vert.spv")
+                        let mut f = File::open("examples/src/bin/studio/spirvs/vert.spv")
                             .expect("Can't find file src/bin/studio/spirvs/vert.spv This example needs to be run from the root of the example crate.");
                         let mut v = vec![];
                         f.read_to_end(&mut v).unwrap();
@@ -549,7 +549,7 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
                     };
 
                     let fs = {
-                        let mut f = File::open("src/bin/studio/spirvs/frag.spv")
+                        let mut f = File::open("examples/src/bin/studio/spirvs/frag.spv")
                             .expect("Can't find file src/bin/studio/spirvs/frag.spv");
                         let mut v = vec![];
                         f.read_to_end(&mut v).unwrap();
@@ -660,7 +660,7 @@ fn vulkan_main() -> (winit::event_loop::EventLoopProxy<CustomEvent>, impl FnOnce
 fn main() {
     let (send, recv) = channel();
     let mut watcher: RecommendedWatcher = Watcher::new(send, Duration::from_secs(2)).unwrap();
-    watcher.watch("./src/bin/studio/shaders", RecursiveMode::Recursive);
+    watcher.watch("examples/src/bin/studio/shaders", RecursiveMode::Recursive);
     let (event_loop_proxy, cloj) = vulkan_main();
     thread::spawn(move || {
         loop {

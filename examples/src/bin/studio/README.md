@@ -15,4 +15,4 @@ This is an experiment studying with the runtime-shader example, in order to make
 
 #### Note:
 
-Like the runtime-shader example, this should be run from the examples directory rather than the vulkano root.  
+Unlike the runtime-shader example, this should be run from the vulkano root.  
