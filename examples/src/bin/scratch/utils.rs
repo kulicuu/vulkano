@@ -1,16 +1,14 @@
 
 
-use std::str::FromStr;
+
 
 use vulkano::buffer::{BufferUsage, CpuAccessibleBuffer, ImmutableBuffer};
 use vulkano::device::{Device, DeviceExtensions};
 
-
 use std::sync::Arc;
+use std::str::FromStr;
 use std::io::prelude::*;
 use std::path::Path;
-
-
 
 pub fn process_str_ints(input : &str) -> Vec<u32> {
     let start = String::from(input);
@@ -33,7 +31,6 @@ pub fn process_str_ints(input : &str) -> Vec<u32> {
     ret_vec
 }
 
-
 pub fn find_three_floats(input : &str) -> Option<Vec<f64>> {
     let x300 = String::from(input);
     let x301 : Vec<&str> = x300.split(" ").collect();
@@ -51,7 +48,6 @@ pub fn find_three_floats(input : &str) -> Option<Vec<f64>> {
         return None
     }
 }
-
 
 pub fn process_str_floats(input: &str) -> Vec<Vec<f64>> {
     let start = String::from(input);
@@ -73,7 +69,6 @@ pub fn process_str_floats(input: &str) -> Vec<Vec<f64>> {
     ret_vec
 }
 
-
 #[derive(Default, Copy, Clone)]
 pub struct Vertex {
     pub position: (f32, f32, f32)
@@ -88,7 +83,6 @@ pub struct Normal {
 
 vulkano::impl_vertex!(Normal, normal);
 
-
 pub struct Package {
     pub vertex_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
     pub normals_buffer: std::sync::Arc<CpuAccessibleBuffer::<[f32]>>,
@@ -96,7 +90,7 @@ pub struct Package {
 }
 
 pub fn build_terrain(device: Arc<Device>) -> (Arc<CpuAccessibleBuffer::<[Vertex]>>, Arc<CpuAccessibleBuffer::<[Normal]>>, Arc<CpuAccessibleBuffer::<[u32]>>) {
-    let mut terrain_f = std::fs::File::open("./examples/src/bin/scratch/terrain_mesh_003.txt").unwrap();
+    let mut terrain_f = std::fs::File::open("./examples/src/bin/scratch/models_materials/terrain_mesh_003.txt").unwrap();
     let mut terrain_buffer = String::new();
     terrain_f.read_to_string(&mut terrain_buffer).unwrap();
     let x99 : Vec<&str> = terrain_buffer.split("Vertices:").collect();
@@ -128,7 +122,7 @@ pub fn build_terrain(device: Arc<Device>) -> (Arc<CpuAccessibleBuffer::<[Vertex]
 }
 
 pub fn build_lear(device: Arc<Device>) -> Vec<Package> {
-    let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/lear_300.obj"));
+    let lear = tobj::load_obj(&Path::new("./examples/src/bin/scratch/models_materials/lear_300.obj"));
     let (models, materials) = lear.unwrap();
     let mut mashes : Vec<Package> = Vec::new();
 
